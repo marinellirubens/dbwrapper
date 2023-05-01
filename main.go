@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	//_ "github.com/marinellirubens/dbwrapper"
@@ -15,12 +17,6 @@ type Teste struct {
 	Teste       string `json:"teste" binding:"required"`
 }
 
-// contants for the server (probably will move to a file)
-const (
-	SERVER_ADDRESS string = "localhost"
-	SERVER_PORT    int    = 8080
-)
-
 // example of method to handle a request
 func getInfo(c *gin.Context) {
 	response := Teste{Information: "OK", Teste: "klsdhkdhfgh"}
@@ -32,9 +28,9 @@ func getInfo(c *gin.Context) {
 }
 
 // serve the api
-func ServeApi() {
+func ServeApi(address string, port int) {
 	gin.SetMode(gin.DebugMode)
-	server_path := fmt.Sprintf("%v:%v", SERVER_ADDRESS, SERVER_PORT)
+	server_path := fmt.Sprintf("%v:%v", address, port)
 	fmt.Printf("Starting server on %v\n", server_path)
 
 	// define the endpoints/handlers of the api
@@ -45,5 +41,15 @@ func ServeApi() {
 }
 
 func main() {
-	ServeApi()
+	cfg, err := GetInfoFile()
+	if err != nil {
+		log.Fatal("error processing configuration file")
+		os.Exit(1)
+	}
+
+	fmt.Println(cfg.Section("SERVER"))
+	host := cfg.Section("SERVER").Key("SERVER_ADDRESS").String()
+	port, _ := cfg.Section("SERVER").Key("SERVER_PORT").Int()
+
+	ServeApi(host, port)
 }
