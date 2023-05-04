@@ -6,14 +6,6 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-type connectionInfo struct {
-	host     string
-	port     int
-	user     string
-	password string
-	dbname   string
-}
-
 // gets the configuration file
 func GetInfoFile(filename ...string) (*ini.File, error) {
 	var file_path string

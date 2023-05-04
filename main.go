@@ -18,7 +18,7 @@ type Teste struct {
 }
 
 // example of method to handle a request
-func getInfo(c *gin.Context) {
+func (app *app) getInfo(c *gin.Context) {
 	response := Teste{Information: "OK", Teste: "klsdhkdhfgh"}
 
 	c.Bind(&response)
@@ -28,20 +28,20 @@ func getInfo(c *gin.Context) {
 }
 
 // serve the api
-func ServeApi(address string, port int) {
+func ServeApi(address string, port int, app *app) {
 	gin.SetMode(gin.DebugMode)
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	fmt.Printf("Starting server on %v\n", server_path)
 
 	// define the endpoints/handlers of the api
 	router := gin.Default()
-	router.GET("/", getInfo)
+	router.GET("/", app.getInfo)
 	//router.POST("/albums", postAlbums)
 	router.Run(server_path)
 }
 
 func main() {
-	cfg, err := GetInfoFile()
+	cfg, err := GetInfoFile("./config.ini")
 	if err != nil {
 		log.Fatal("error processing configuration file")
 		os.Exit(1)
@@ -51,5 +51,14 @@ func main() {
 	host := cfg.Section("SERVER").Key("SERVER_ADDRESS").String()
 	port, _ := cfg.Section("SERVER").Key("SERVER_PORT").Int()
 
-	ServeApi(host, port)
+	psqlInfom := GetConnectionInfo(cfg)
+	fmt.Println(psqlInfom)
+
+	db, err := ConnectToPsql(psqlInfom)
+	if err != nil {
+		panic(err)
+	}
+	application := &app{db: db}
+
+	ServeApi(host, port, application)
 }
