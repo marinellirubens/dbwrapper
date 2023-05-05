@@ -17,7 +17,7 @@ import (
 
 // serve the api
 func ServeApi(address string, port int, app *pg.App) {
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	fmt.Printf("Starting server on %v\n", server_path)
 
@@ -36,12 +36,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(cfg.Section("SERVER"))
+	//fmt.Println(cfg.Section("SERVER"))
 	host := cfg.Section("SERVER").Key("SERVER_ADDRESS").String()
 	port, _ := cfg.Section("SERVER").Key("SERVER_PORT").Int()
 
 	psqlInfom := pg.GetConnectionInfo(cfg)
-	fmt.Println(psqlInfom)
+	//fmt.Println(psqlInfom)
 
 	db, err := pg.ConnectToPsql(psqlInfom)
 	if err != nil {

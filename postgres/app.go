@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,20 +21,20 @@ func (app *App) GetInfo(c *gin.Context) {
 	response := Teste{Information: "OK", Teste: "klsdhkdhfgh"}
 
 	c.Bind(&response)
-	fmt.Println(response)
+	//fmt.Println(response)
 
 	c.JSON(http.StatusOK, response)
 }
 
 func (a *App) GetInfoFromDb(c *gin.Context) {
 	query := c.Query("query")
-	fmt.Println(query)
+	//fmt.Println(query)
 	rows, err := a.Db.Query(query)
 	if err != nil {
 		c.IndentedJSON(http.StatusOK, "error")
 	}
-	fmt.Println(rows)
-	fmt.Println(err)
+	//fmt.Println(rows)
+	//fmt.Println(err)
 	cols, err := rows.Columns()
 	if err != nil {
 		panic(err)

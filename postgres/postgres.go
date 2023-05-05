@@ -30,7 +30,7 @@ func GetConnectionInfo(cfg *ini.File) string {
 	psqlInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		connInfo.host, connInfo.port, connInfo.user, connInfo.password, connInfo.dbname)
-	//fmt.Println(psqlInfo)
+	fmt.Printf("Connecting to postgres host=%v port=%v dbname=%v\n", connInfo.host, connInfo.port, connInfo.dbname)
 
 	return psqlInfo
 }
