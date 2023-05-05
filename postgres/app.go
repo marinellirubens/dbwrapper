@@ -34,7 +34,8 @@ func (a *App) GetInfoFromDb(c *gin.Context) {
 	if err != nil {
 		c.IndentedJSON(http.StatusOK, "error")
 	}
-
+	fmt.Println(rows)
+	fmt.Println(err)
 	cols, err := rows.Columns()
 	if err != nil {
 		panic(err)

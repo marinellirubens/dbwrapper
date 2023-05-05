@@ -24,6 +24,7 @@ func ServeApi(address string, port int, app *pg.App) {
 	// define the endpoints/handlers of the api
 	router := gin.Default()
 	router.GET("/", app.GetInfo)
+	router.GET("/pg", app.GetInfoFromDb)
 	//router.POST("/albums", postAlbums)
 	router.Run(server_path)
 }

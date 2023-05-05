@@ -30,7 +30,7 @@ func GetConnectionInfo(cfg *ini.File) string {
 	psqlInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		connInfo.host, connInfo.port, connInfo.user, connInfo.password, connInfo.dbname)
-	fmt.Println(psqlInfo)
+	//fmt.Println(psqlInfo)
 
 	return psqlInfo
 }
@@ -40,7 +40,7 @@ func ConnectToPsql(psqlInfo string) (*sql.DB, error) {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	//defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
