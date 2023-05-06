@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,15 @@ func (app *App) GetInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func (app *App) GetInfoNative(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("%v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
+	w.Write([]byte("teste"))
+}
+
+func (app *App) GetInfoNativeTeste(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("GetInfoTeste %v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
+	w.Write([]byte("teste"))
+}
 func (a *App) GetInfoFromDb(c *gin.Context) {
 	query := c.Query("query")
 	//fmt.Println(query)

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	cf "github.com/marinellirubens/dbwrapper/config"
@@ -29,6 +30,17 @@ func ServeApi(address string, port int, app *pg.App) {
 	router.Run(server_path)
 }
 
+func ServeApiNative(address string, port int, app *pg.App) {
+	server_path := fmt.Sprintf("%v:%v", address, port)
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", app.GetInfoNative)
+	mux.HandleFunc("/teste", app.GetInfoNativeTeste)
+
+	fmt.Printf("Starting server on %v\n", server_path)
+	http.ListenAndServe(server_path, mux)
+}
+
 func main() {
 	cfg, err := cf.GetInfoFile("./config/config.ini")
 	if err != nil {
@@ -49,5 +61,5 @@ func main() {
 	}
 	application := &pg.App{Db: db}
 
-	ServeApi(host, port, application)
+	ServeApiNative(host, port, application)
 }
