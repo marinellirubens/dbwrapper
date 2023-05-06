@@ -1,6 +1,6 @@
 build:
 	go build .
 
-run: build
-	./dbwrapper
+run:
+	go run .
 
