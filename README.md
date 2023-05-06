@@ -42,3 +42,7 @@ basic logging in golang:
 
 - https://www.youtube.com/watch?v=yF7k6PxtRU8
 
+
+Anthony GG series on creating a golang REST API with almost no external packages:
+
+- https://www.youtube.com/watch?v=pwZuNmAzaH8&list=PL0xRBLFXXsP6nudFDqMXzrvQCZrxSOm-2
