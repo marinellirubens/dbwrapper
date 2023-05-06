@@ -7,28 +7,11 @@ import (
 	"os"
 
 	cf "github.com/marinellirubens/dbwrapper/config"
+	logs "github.com/marinellirubens/dbwrapper/logger"
 	pg "github.com/marinellirubens/dbwrapper/postgres"
-
-	"github.com/gin-gonic/gin"
+	//"github.com/gin-gonic/gin"
 	//_ "github.com/marinellirubens/dbwrapper"
 )
-
-// teste struct to understand how to send the response
-// Atributes that need to appear as key in a json needs to be start with capital letters
-
-// serve the api
-func ServeApi(address string, port int, app *pg.App) {
-	gin.SetMode(gin.ReleaseMode)
-	server_path := fmt.Sprintf("%v:%v", address, port)
-	fmt.Printf("Starting server on %v\n", server_path)
-
-	// define the endpoints/handlers of the api
-	router := gin.Default()
-	router.GET("/", app.GetInfo)
-	router.GET("/pg", app.GetInfoFromDb)
-	//router.POST("/albums", postAlbums)
-	router.Run(server_path)
-}
 
 func ServeApiNative(address string, port int, app *pg.App) {
 	server_path := fmt.Sprintf("%v:%v", address, port)
@@ -36,12 +19,23 @@ func ServeApiNative(address string, port int, app *pg.App) {
 
 	mux.HandleFunc("/", app.GetInfoNative)
 	mux.HandleFunc("/teste", app.GetInfoNativeTeste)
+	mux.HandleFunc("/pg", app.GetInfoFromDb)
 
 	fmt.Printf("Starting server on %v\n", server_path)
 	http.ListenAndServe(server_path, mux)
 }
 
 func main() {
+	logger, err := logs.CreateLogger("server.log", logs.DEBUG, logs.FILE_WRITER)
+	if err != nil {
+		log.Fatal(err)
+	}
+	logger.Info("Starting process")
+	logger.Debug("Starting process")
+	logger.Fatal("Starting process")
+	logger.Error("Starting process")
+	logger.Warning("Starting process")
+
 	cfg, err := cf.GetInfoFile("./config/config.ini")
 	if err != nil {
 		log.Fatal("error processing configuration file")

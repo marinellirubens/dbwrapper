@@ -2,10 +2,10 @@ package postgres
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
+	//"github.com/gin-gonic/gin"
 )
 
 type App struct {
@@ -17,31 +17,25 @@ type Teste struct {
 	Teste       string `json:"teste" binding:"required"`
 }
 
-// example of method to handle a request
-func (app *App) GetInfo(c *gin.Context) {
-	response := Teste{Information: "OK", Teste: "klsdhkdhfgh"}
-
-	c.Bind(&response)
-	//fmt.Println(response)
-
-	c.JSON(http.StatusOK, response)
-}
-
 func (app *App) GetInfoNative(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("%v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
-	w.Write([]byte("teste"))
+	js, _ := json.Marshal(Teste{Information: "OK", Teste: "klsdhkdhfgh"})
+
+	w.WriteHeader(203)
+	w.Write(js)
 }
 
 func (app *App) GetInfoNativeTeste(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("GetInfoTeste %v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
 	w.Write([]byte("teste"))
 }
-func (a *App) GetInfoFromDb(c *gin.Context) {
-	query := c.Query("query")
+func (a *App) GetInfoFromDb(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
 	//fmt.Println(query)
 	rows, err := a.Db.Query(query)
 	if err != nil {
-		c.IndentedJSON(http.StatusOK, "error")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(fmt.Sprintf("%v", err)))
 	}
 	//fmt.Println(rows)
 	//fmt.Println(err)
@@ -71,6 +65,9 @@ func (a *App) GetInfoFromDb(c *gin.Context) {
 	if err2 != nil {
 		panic(err2)
 	}
-	// fmt.Println(allgeneric)
-	c.JSON(200, allgeneric)
+
+	js, _ := json.Marshal(allgeneric)
+	w.WriteHeader(203)
+	w.Write(js)
+
 }

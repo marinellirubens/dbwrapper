@@ -36,17 +36,17 @@ func GetConnectionInfo(cfg *ini.File) string {
 }
 
 func ConnectToPsql(psqlInfo string) (*sql.DB, error) {
-	return nil, nil
-	//db, err := sql.Open("postgres", psqlInfo)
-	//if err != nil {
-	//panic(err)
-	//}
-	////defer db.Close()
+	//return nil, nil
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	//defer db.Close()
 
-	//err = db.Ping()
-	//if err != nil {
-	//panic(err)
-	//}
-	//fmt.Println("Successfully connected!")
-	//return db, nil
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Successfully connected!")
+	return db, nil
 }
