@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
@@ -17,46 +18,67 @@ const (
 
 // log type
 const (
+	//writes the lods on the terminal
 	STREAM_WRITER = 777
-	FILE_WRITER   = 999
+
+	//writes the logs on a file
+	FILE_WRITER = 999
+)
+
+const (
+	green   = "\033[97;42m"
+	white   = "\033[90;47m"
+	yellow  = "\033[90;43m"
+	red     = "\033[97;41m"
+	blue    = "\033[97;44m"
+	magenta = "\033[97;45m"
+	cyan    = "\033[97;46m"
+	reset   = "\033[0m"
 )
 
 // TODO: Implement log rotation
 type Logger struct {
-	infoLogger    *log.Logger
-	debugLogger   *log.Logger
-	warningLogger *log.Logger
-	errorLogger   *log.Logger
-	fatalLogger   *log.Logger
+	logger   *log.Logger
+	logLevel int
 }
 
+// generic log method
+func (l *Logger) log(message string, logLevel int) {
+	fmt.Println(message, logLevel)
+}
+
+// logs message using level Info
 func (l *Logger) Info(message string) {
-	if l.infoLogger != nil {
-		l.infoLogger.Print(message)
+	if l.logLevel >= INFO {
+		l.log(message, INFO)
 	}
 }
 
+// logs message using level Debug
 func (l *Logger) Debug(message string) {
-	if l.debugLogger != nil {
-		l.debugLogger.Print(message)
+	if l.logLevel >= DEBUG {
+		l.log(message, DEBUG)
 	}
 }
 
+// logs message using level Warning
 func (l *Logger) Warning(message string) {
-	if l.warningLogger != nil {
-		l.warningLogger.Print(message)
+	if l.logLevel >= WARNING {
+		l.log(message, WARNING)
 	}
 }
 
+// logs message using level Error
 func (l *Logger) Error(message string) {
-	if l.errorLogger != nil {
-		l.errorLogger.Print(message)
+	if l.logLevel >= ERROR {
+		l.log(message, ERROR)
 	}
 }
 
+// logs message using level Fatal
 func (l *Logger) Fatal(message string) {
-	if l.fatalLogger != nil {
-		l.fatalLogger.Print(message)
+	if l.logLevel >= FATAL {
+		l.log(message, FATAL)
 	}
 }
 
@@ -85,33 +107,12 @@ func CreateLogger(logFile string, logLevel int, logType int) (*Logger, error) {
 	} else {
 		panic("Log type invalid")
 	}
-	var info *log.Logger
-	var debug *log.Logger
-	var warning *log.Logger
-	var error_ *log.Logger
-	var fatal *log.Logger
+	var internalLogger *log.Logger
 
-	if logLevel <= INFO {
-		info = log.New(output, "INFO: ", flags)
-	}
-	if logLevel <= DEBUG {
-		debug = log.New(output, "DEBUG: ", flags)
-	}
-	if logLevel <= WARNING {
-		warning = log.New(output, "WARNING: ", flags)
-	}
-	if logLevel <= ERROR {
-		error_ = log.New(output, "ERROR: ", flags)
-	}
-	if logLevel <= FATAL {
-		fatal = log.New(output, "FATAL: ", flags)
-	}
+	internalLogger = log.New(output, "INFO: ", flags)
 
 	logger := &Logger{
-		infoLogger:    info,
-		debugLogger:   debug,
-		warningLogger: warning,
-		errorLogger:   error_,
-		fatalLogger:   fatal}
+		logger:   internalLogger,
+		logLevel: logLevel}
 	return logger, err
 }
