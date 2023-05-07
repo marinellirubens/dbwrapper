@@ -5,11 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	logs "github.com/marinellirubens/dbwrapper/logger"
 	//"github.com/gin-gonic/gin"
 )
 
 type App struct {
+	// database connection
 	Db *sql.DB
+	// logger object for general purposes
+	Log *logs.Logger
 }
 
 type Teste struct {
@@ -29,9 +34,10 @@ func (app *App) GetInfoNativeTeste(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("GetInfoTeste %v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
 	w.Write([]byte("teste"))
 }
+
 func (a *App) GetInfoFromDb(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
-	//fmt.Println(query)
+	a.Log.Info(query)
 	rows, err := a.Db.Query(query)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

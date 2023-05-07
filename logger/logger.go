@@ -18,7 +18,7 @@ const (
 
 // log type
 const (
-	//writes the lods on the terminal
+	//writes the logs on the terminal
 	STREAM_WRITER = 777
 
 	//writes the logs on a file
@@ -36,48 +36,86 @@ const (
 	reset   = "\033[0m"
 )
 
+var (
+	levelTxt map[int]string = map[int]string{
+		0:  "NONE",
+		10: "DEBUG",
+		20: "INFO",
+		30: "WARNING",
+		40: "ERROR",
+		50: "FATAL",
+	}
+	levelTxtWithColor map[int]string = map[int]string{
+		0:  "NONE",
+		10: green + "DEBUG" + reset,
+		20: blue + "INFO" + reset,
+		30: yellow + "WARNING" + reset,
+		40: red + "ERROR" + reset,
+		50: red + "FATAL" + reset,
+	}
+)
+
 // TODO: Implement log rotation
 type Logger struct {
 	logger   *log.Logger
 	logLevel int
+	logType  int
+}
+
+// converts log level to text with color
+func levelToText(logLevel int, withColor bool) string {
+	var ret string
+	if withColor {
+		ret = fmt.Sprint(levelTxtWithColor[logLevel])
+	} else {
+		ret = fmt.Sprint(levelTxt[logLevel])
+	}
+	//fmt.Println(ret)
+	return ret
 }
 
 // generic log method
 func (l *Logger) log(message string, logLevel int) {
-	fmt.Println(message, logLevel)
+	var withColor bool
+	if l.logType == STREAM_WRITER {
+		withColor = true
+	}
+	level := levelToText(logLevel, withColor)
+	text_to_print := fmt.Sprintf("[DBWRAPPER][%s] - %s%s", level, message, reset)
+	l.logger.Println(text_to_print)
 }
 
 // logs message using level Info
 func (l *Logger) Info(message string) {
-	if l.logLevel >= INFO {
+	if l.logLevel <= INFO {
 		l.log(message, INFO)
 	}
 }
 
 // logs message using level Debug
 func (l *Logger) Debug(message string) {
-	if l.logLevel >= DEBUG {
+	if l.logLevel <= DEBUG {
 		l.log(message, DEBUG)
 	}
 }
 
 // logs message using level Warning
 func (l *Logger) Warning(message string) {
-	if l.logLevel >= WARNING {
+	if l.logLevel <= WARNING {
 		l.log(message, WARNING)
 	}
 }
 
 // logs message using level Error
 func (l *Logger) Error(message string) {
-	if l.logLevel >= ERROR {
+	if l.logLevel <= ERROR {
 		l.log(message, ERROR)
 	}
 }
 
 // logs message using level Fatal
 func (l *Logger) Fatal(message string) {
-	if l.logLevel >= FATAL {
+	if l.logLevel <= FATAL {
 		l.log(message, FATAL)
 	}
 }
@@ -109,10 +147,12 @@ func CreateLogger(logFile string, logLevel int, logType int) (*Logger, error) {
 	}
 	var internalLogger *log.Logger
 
-	internalLogger = log.New(output, "INFO: ", flags)
+	internalLogger = log.New(output, "", flags)
 
 	logger := &Logger{
 		logger:   internalLogger,
-		logLevel: logLevel}
+		logLevel: logLevel,
+		logType:  logType,
+	}
 	return logger, err
 }

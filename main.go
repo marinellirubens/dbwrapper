@@ -21,20 +21,20 @@ func ServeApiNative(address string, port int, app *pg.App) {
 	mux.HandleFunc("/teste", app.GetInfoNativeTeste)
 	mux.HandleFunc("/pg", app.GetInfoFromDb)
 
-	fmt.Printf("Starting server on %v\n", server_path)
+	app.Log.Info(fmt.Sprintf("Starting server on %v", server_path))
 	http.ListenAndServe(server_path, mux)
 }
 
 func main() {
-	logger, err := logs.CreateLogger("server.log", logs.DEBUG, logs.FILE_WRITER)
+	logger, err := logs.CreateLogger("server.log", logs.DEBUG, logs.STREAM_WRITER)
 	if err != nil {
 		log.Fatal(err)
 	}
-	logger.Info("Starting process")
-	logger.Debug("Starting process")
-	logger.Fatal("Starting process")
-	logger.Error("Starting process")
-	logger.Warning("Starting process")
+	//logger.Debug("Starting process")
+	//logger.Info("Starting process")
+	//logger.Warning("Starting process")
+	//logger.Error("Starting process")
+	//logger.Fatal("Starting process")
 
 	cfg, err := cf.GetInfoFile("./config/config.ini")
 	if err != nil {
@@ -53,7 +53,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	application := &pg.App{Db: db}
+	application := &pg.App{Db: db, Log: logger}
 
 	ServeApiNative(host, port, application)
 }
