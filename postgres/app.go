@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	logs "github.com/marinellirubens/dbwrapper/logger"
 	//"github.com/gin-gonic/gin"
@@ -35,10 +36,12 @@ func (app *App) GetInfoNativeTeste(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("teste"))
 }
 
-func (a *App) GetInfoFromDb(w http.ResponseWriter, r *http.Request) {
+func (app *App) GetInfoFromDb(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
 	query := r.URL.Query().Get("query")
-	a.Log.Info(query)
-	rows, err := a.Db.Query(query)
+	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
+	rows, err := app.Db.Query(query)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(fmt.Sprintf("%v", err)))
@@ -72,6 +75,7 @@ func (a *App) GetInfoFromDb(w http.ResponseWriter, r *http.Request) {
 		panic(err2)
 	}
 
+	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
 	js, _ := json.Marshal(allgeneric)
 	w.WriteHeader(203)
 	w.Write(js)
