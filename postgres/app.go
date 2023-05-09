@@ -36,7 +36,15 @@ func (app *App) GetInfoNativeTeste(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("teste"))
 }
 
-func (app *App) GetInfoFromDb(w http.ResponseWriter, r *http.Request) {
+// Requests information from the postgresql database that is connected
+//
+//	Validates if the method is GET, if the method is not GET, returns a StatusMethodNotAllowed response
+func (app *App) GetInfoFromPostgres(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
 	start := time.Now()
 
 	query := r.URL.Query().Get("query")
@@ -77,7 +85,7 @@ func (app *App) GetInfoFromDb(w http.ResponseWriter, r *http.Request) {
 
 	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
 	js, _ := json.Marshal(allgeneric)
-	w.WriteHeader(203)
-	w.Write(js)
 
+	w.WriteHeader(http.StatusOK)
+	w.Write(js)
 }

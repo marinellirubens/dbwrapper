@@ -1,5 +1,13 @@
 package main
 
+//TODO: include endpoint to insert and delete from database
+//TODO: include connection with redis
+//TODO: include connection with mongodb
+//TODO: include connection with Oracle
+//TODO: include connection with Mysql
+//TODO: include authentication using JWT
+//TODO: implement cli arguments
+//TODO: improve the readme with examples
 import (
 	"fmt"
 	"log"
@@ -19,7 +27,7 @@ func ServeApiNative(address string, port int, app *pg.App) {
 
 	mux.HandleFunc("/", app.GetInfoNative)
 	mux.HandleFunc("/teste", app.GetInfoNativeTeste)
-	mux.HandleFunc("/pg", app.GetInfoFromDb)
+	mux.HandleFunc("/pg", app.GetInfoFromPostgres)
 
 	app.Log.Info(fmt.Sprintf("Starting server on %v", server_path))
 	http.ListenAndServe(server_path, mux)
