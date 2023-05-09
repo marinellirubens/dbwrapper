@@ -3,8 +3,10 @@ package postgres
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	logs "github.com/marinellirubens/dbwrapper/logger"
@@ -36,23 +38,49 @@ func (app *App) GetInfoNativeTeste(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("teste"))
 }
 
-// Requests information from the postgresql database that is connected
-//
-//	Validates if the method is GET, if the method is not GET, returns a StatusMethodNotAllowed response
 func (app *App) GetInfoFromPostgres(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))
 		return
 	}
-	start := time.Now()
-
 	query := r.URL.Query().Get("query")
+	var status int
+	result, err := app.getQueryFromPostgres(query)
+	if err != nil {
+		status = http.StatusBadRequest
+	} else {
+		status = http.StatusOK
+	}
+	w.WriteHeader(status)
+	w.Write(result)
+}
+
+func (app *App) validateQuery(query string) error {
+	words := []string{"delete", "truncate", "drop", "update"}
+	lowerQuery := strings.ToLower(query)
+	for _, key := range words {
+		if strings.Contains(lowerQuery, key) {
+			return errors.New("delete not allowed on this endpoint")
+		}
+	}
+	return nil
+}
+
+// Requests information from the postgresql database that is connected
+//
+//	Validates if the method is GET, if the method is not GET, returns a StatusMethodNotAllowed response
+func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
+	start := time.Now()
+	err := app.validateQuery(query)
+	if err != nil {
+		return []byte(fmt.Sprintf("%v", err)), err
+	}
+
 	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
 	rows, err := app.Db.Query(query)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(fmt.Sprintf("%v", err)))
+		return []byte(fmt.Sprintf("%v", err)), err
 	}
 	//fmt.Println(rows)
 	//fmt.Println(err)
@@ -86,6 +114,5 @@ func (app *App) GetInfoFromPostgres(w http.ResponseWriter, r *http.Request) {
 	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
 	js, _ := json.Marshal(allgeneric)
 
-	w.WriteHeader(http.StatusOK)
-	w.Write(js)
+	return js, nil
 }
