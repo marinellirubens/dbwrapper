@@ -17,17 +17,15 @@ import (
 	cf "github.com/marinellirubens/dbwrapper/config"
 	logs "github.com/marinellirubens/dbwrapper/logger"
 	pg "github.com/marinellirubens/dbwrapper/postgres"
-	//"github.com/gin-gonic/gin"
-	//_ "github.com/marinellirubens/dbwrapper"
 )
 
 func ServeApiNative(address string, port int, app *pg.App) {
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", app.GetInfoNative)
-	mux.HandleFunc("/teste", app.GetInfoNativeTeste)
-	mux.HandleFunc("/pg", app.GetInfoFromPostgres)
+	//mux.HandleFunc("/", app.GetInfoNative)
+	//mux.HandleFunc("/teste", app.GetInfoNativeTeste)
+	mux.HandleFunc("/pg", app.ProcessPostgresRequest)
 
 	app.Log.Info(fmt.Sprintf("Starting server on %v", server_path))
 	http.ListenAndServe(server_path, mux)
@@ -38,11 +36,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//logger.Debug("Starting process")
-	//logger.Info("Starting process")
-	//logger.Warning("Starting process")
-	//logger.Error("Starting process")
-	//logger.Fatal("Starting process")
 
 	cfg, err := cf.GetInfoFile("./config/config.ini")
 	if err != nil {
@@ -50,13 +43,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	//fmt.Println(cfg.Section("SERVER"))
 	host := cfg.Section("SERVER").Key("SERVER_ADDRESS").String()
 	port, _ := cfg.Section("SERVER").Key("SERVER_PORT").Int()
 
 	psqlInfom := pg.GetConnectionInfo(cfg)
-	//fmt.Println(psqlInfom)
-
 	db, err := pg.ConnectToPsql(psqlInfom)
 	if err != nil {
 		panic(err)

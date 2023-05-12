@@ -10,7 +10,6 @@ import (
 	"time"
 
 	logs "github.com/marinellirubens/dbwrapper/logger"
-	//"github.com/gin-gonic/gin"
 )
 
 type App struct {
@@ -20,25 +19,25 @@ type App struct {
 	Log *logs.Logger
 }
 
-type Teste struct {
-	Information string `json:"information" binding:"required"`
-	Teste       string `json:"teste" binding:"required"`
-}
+//type Teste struct {
+//Information string `json:"information" binding:"required"`
+//Teste       string `json:"teste" binding:"required"`
+//}
 
-func (app *App) GetInfoNative(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("%v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
-	js, _ := json.Marshal(Teste{Information: "OK", Teste: "klsdhkdhfgh"})
+//func (app *App) GetInfoNative(w http.ResponseWriter, r *http.Request) {
+//fmt.Printf("%v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
+//js, _ := json.Marshal(Teste{Information: "OK", Teste: "klsdhkdhfgh"})
 
-	w.WriteHeader(203)
-	w.Write(js)
-}
+//w.WriteHeader(203)
+//w.Write(js)
+//}
 
-func (app *App) GetInfoNativeTeste(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("GetInfoTeste %v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
-	w.Write([]byte("teste"))
-}
+//func (app *App) GetInfoNativeTeste(w http.ResponseWriter, r *http.Request) {
+//fmt.Printf("GetInfoTeste %v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
+//w.Write([]byte("teste"))
+//}
 
-func (app *App) GetInfoFromPostgres(w http.ResponseWriter, r *http.Request) {
+func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))

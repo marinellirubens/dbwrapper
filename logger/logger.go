@@ -45,6 +45,7 @@ var (
 		40: "ERROR",
 		50: "FATAL",
 	}
+
 	levelTxtWithColor map[int]string = map[int]string{
 		0:  "NONE",
 		10: green + "DEBUG" + reset,
@@ -70,7 +71,6 @@ func levelToText(logLevel int, withColor bool) string {
 	} else {
 		ret = fmt.Sprint(levelTxt[logLevel])
 	}
-	//fmt.Println(ret)
 	return ret
 }
 
@@ -126,7 +126,7 @@ func (l *Logger) Fatal(message string) {
 //
 // example:
 //
-//	logger, err := lCreateLogger("server.log", logger.DEBUG, logger.STREAM_WRITER)
+//	logger, err := CreateLogger("server.log", logger.DEBUG, logger.STREAM_WRITER)
 func CreateLogger(logFile string, logLevel int, logType int) (*Logger, error) {
 	flags := log.Ldate | log.Ltime | log.Lshortfile
 
