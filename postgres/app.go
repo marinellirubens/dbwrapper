@@ -19,24 +19,6 @@ type App struct {
 	Log *logs.Logger
 }
 
-//type Teste struct {
-//Information string `json:"information" binding:"required"`
-//Teste       string `json:"teste" binding:"required"`
-//}
-
-//func (app *App) GetInfoNative(w http.ResponseWriter, r *http.Request) {
-//fmt.Printf("%v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
-//js, _ := json.Marshal(Teste{Information: "OK", Teste: "klsdhkdhfgh"})
-
-//w.WriteHeader(203)
-//w.Write(js)
-//}
-
-//func (app *App) GetInfoNativeTeste(w http.ResponseWriter, r *http.Request) {
-//fmt.Printf("GetInfoTeste %v %v %v %v\n", r.Method, r.URL.Path, r.Host, r.Proto)
-//w.Write([]byte("teste"))
-//}
-
 func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -46,11 +28,13 @@ func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 	var status int
 	result, err := app.getQueryFromPostgres(query)
+
 	if err != nil {
 		status = http.StatusBadRequest
 	} else {
 		status = http.StatusOK
 	}
+
 	w.WriteHeader(status)
 	w.Write(result)
 }

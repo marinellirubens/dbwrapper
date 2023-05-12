@@ -18,7 +18,6 @@ type connectionInfo struct {
 
 func GetConnectionInfo(cfg *ini.File) string {
 	port, _ := cfg.Section("POSTGRES").Key("port").Int()
-
 	connInfo := connectionInfo{
 		host:     cfg.Section("POSTGRES").Key("host").String(),
 		port:     port,
@@ -29,8 +28,18 @@ func GetConnectionInfo(cfg *ini.File) string {
 
 	psqlInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		connInfo.host, connInfo.port, connInfo.user, connInfo.password, connInfo.dbname)
-	fmt.Printf("Connecting to postgres host=%v port=%v dbname=%v\n", connInfo.host, connInfo.port, connInfo.dbname)
+		connInfo.host,
+		connInfo.port,
+		connInfo.user,
+		connInfo.password,
+		connInfo.dbname,
+	)
+	fmt.Printf(
+		"Connecting to postgres host=%v port=%v dbname=%v\n",
+		connInfo.host,
+		connInfo.port,
+		connInfo.dbname,
+	)
 
 	return psqlInfo
 }
