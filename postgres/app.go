@@ -82,8 +82,7 @@ func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
-	//fmt.Println(rows)
-	//fmt.Println(err)
+
 	cols, err := rows.Columns()
 	if err != nil {
 		panic(err)
