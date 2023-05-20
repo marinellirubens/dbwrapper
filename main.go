@@ -1,6 +1,5 @@
 package main
 
-//TODO: include endpoint to insert and delete from database
 //TODO: include connection with redis
 //TODO: include connection with mongodb
 //TODO: include connection with Oracle
