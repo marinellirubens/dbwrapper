@@ -20,14 +20,25 @@ type App struct {
 }
 
 func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	var status int
+	var result []byte
+	var err error
+
+	switch method := r.Method; method {
+	case http.MethodGet:
+		query := r.URL.Query().Get("query")
+		result, err = app.getQueryFromPostgres(query)
+	case http.MethodDelete:
+		query := r.URL.Query().Get("query")
+		result, err = app.updatePostgres(query)
+	case http.MethodPatch:
+		query := r.URL.Query().Get("query")
+		result, err = app.deleteFromPostgres(query)
+	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))
 		return
 	}
-	query := r.URL.Query().Get("query")
-	var status int
-	result, err := app.getQueryFromPostgres(query)
 
 	if err != nil {
 		status = http.StatusBadRequest
@@ -48,6 +59,47 @@ func (app *App) validateQuery(query string) error {
 		}
 	}
 	return nil
+}
+func (app *App) validateUpdate(query string) error {
+	words := []string{"delete", "truncate", "drop"}
+	lowerQuery := strings.ToLower(query)
+	for _, key := range words {
+		if strings.Contains(lowerQuery, key) {
+			return errors.New("command not allowed on this endpoint")
+		}
+	}
+	return nil
+}
+
+func (app *App) validateDelete(query string) error {
+	words := []string{"update", "truncate", "drop"}
+	lowerQuery := strings.ToLower(query)
+	for _, key := range words {
+		if strings.Contains(lowerQuery, key) {
+			return errors.New("command not allowed on this endpoint")
+		}
+	}
+	return nil
+}
+
+func (app *App) updatePostgres(query string) ([]byte, error) {
+	start := time.Now()
+	err := app.validateUpdate(query)
+	if err != nil {
+		return []byte(fmt.Sprintf("%v", err)), err
+	}
+	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
+	return []byte("Success"), nil
+}
+
+func (app *App) deleteFromPostgres(query string) ([]byte, error) {
+	start := time.Now()
+	err := app.validateDelete(query)
+	if err != nil {
+		return []byte(fmt.Sprintf("%v", err)), err
+	}
+	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
+	return []byte("Success"), nil
 }
 
 // Requests information from the postgresql database that is connected
