@@ -14,6 +14,7 @@ import (
 
 const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
 
+// Application object to handle the endpoints and connection with database
 type App struct {
 	// database connection
 	Db *sql.DB
@@ -55,6 +56,7 @@ func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 	w.Write(result)
 }
 
+// Validate the query command to check for unallowed keywords
 func (app *App) validateQuery(query string) error {
 	words := []string{"delete", "truncate", "drop", "update"}
 	lowerQuery := strings.ToLower(query)
@@ -65,6 +67,8 @@ func (app *App) validateQuery(query string) error {
 	}
 	return nil
 }
+
+// Validate the update command to check for unallowed keywords
 func (app *App) validateUpdate(query string) error {
 	words := []string{"delete", "truncate", "drop"}
 	lowerQuery := strings.ToLower(query)
@@ -76,6 +80,7 @@ func (app *App) validateUpdate(query string) error {
 	return nil
 }
 
+// Validate the delete command to check for unallowed keywords
 func (app *App) validateDelete(query string) error {
 	words := []string{"update", "truncate", "drop"}
 	lowerQuery := strings.ToLower(query)
@@ -87,6 +92,7 @@ func (app *App) validateDelete(query string) error {
 	return nil
 }
 
+// processes the update on postgresql database
 func (app *App) updatePostgres(query string) ([]byte, error) {
 	start := time.Now()
 	err := app.validateUpdate(query)
@@ -102,6 +108,7 @@ func (app *App) updatePostgres(query string) ([]byte, error) {
 	return []byte("Success"), nil
 }
 
+// process the delete process on postgresql database
 func (app *App) deleteFromPostgres(query string) ([]byte, error) {
 	start := time.Now()
 	err := app.validateDelete(query)
