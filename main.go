@@ -23,8 +23,6 @@ func ServeApiNative(address string, port int, app *pg.App) {
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	mux := http.NewServeMux()
 
-	//mux.HandleFunc("/", app.GetInfoNative)
-	//mux.HandleFunc("/teste", app.GetInfoNativeTeste)
 	mux.HandleFunc("/pg", app.ProcessPostgresRequest)
 
 	app.Log.Info(fmt.Sprintf("Starting server on %v", server_path))

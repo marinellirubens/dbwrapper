@@ -19,10 +19,13 @@ type App struct {
 	Log *logs.Logger
 }
 
+// process selects (GET), delete(DELETE) and update(PATCH)
 func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
-	var status int
-	var result []byte
-	var err error
+	var (
+		status int
+		result []byte
+		err    error
+	)
 
 	switch method := r.Method; method {
 	case http.MethodGet:
