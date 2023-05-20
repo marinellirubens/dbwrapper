@@ -12,6 +12,8 @@ import (
 	logs "github.com/marinellirubens/dbwrapper/logger"
 )
 
+const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
+
 type App struct {
 	// database connection
 	Db *sql.DB
@@ -33,10 +35,10 @@ func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 		result, err = app.getQueryFromPostgres(query)
 	case http.MethodDelete:
 		query := r.URL.Query().Get("query")
-		result, err = app.updatePostgres(query)
+		result, err = app.deleteFromPostgres(query)
 	case http.MethodPatch:
 		query := r.URL.Query().Get("query")
-		result, err = app.deleteFromPostgres(query)
+		result, err = app.updatePostgres(query)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))
@@ -58,7 +60,7 @@ func (app *App) validateQuery(query string) error {
 	lowerQuery := strings.ToLower(query)
 	for _, key := range words {
 		if strings.Contains(lowerQuery, key) {
-			return errors.New("delete not allowed on this endpoint")
+			return errors.New(METHOD_NOT_ALLOWED)
 		}
 	}
 	return nil
@@ -68,7 +70,7 @@ func (app *App) validateUpdate(query string) error {
 	lowerQuery := strings.ToLower(query)
 	for _, key := range words {
 		if strings.Contains(lowerQuery, key) {
-			return errors.New("command not allowed on this endpoint")
+			return errors.New(METHOD_NOT_ALLOWED)
 		}
 	}
 	return nil
@@ -79,7 +81,7 @@ func (app *App) validateDelete(query string) error {
 	lowerQuery := strings.ToLower(query)
 	for _, key := range words {
 		if strings.Contains(lowerQuery, key) {
-			return errors.New("command not allowed on this endpoint")
+			return errors.New(METHOD_NOT_ALLOWED)
 		}
 	}
 	return nil
@@ -91,7 +93,12 @@ func (app *App) updatePostgres(query string) ([]byte, error) {
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
+	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
+	_, err = app.Db.Exec(query)
 	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
+	if err != nil {
+		return []byte(fmt.Sprintf("%v", err)), err
+	}
 	return []byte("Success"), nil
 }
 
@@ -101,7 +108,12 @@ func (app *App) deleteFromPostgres(query string) ([]byte, error) {
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
+	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
+	_, err = app.Db.Exec(query)
 	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
+	if err != nil {
+		return []byte(fmt.Sprintf("%v", err)), err
+	}
 	return []byte("Success"), nil
 }
 
