@@ -32,6 +32,9 @@ creating rest api with only native modules
 - https://www.section.io/engineering-education/how-to-build-a-rest-api-with-golang-using-native-modules/
 - https://dev.to/bmf_san/introduction-to-golang-http-router-made-with-nethttp-3nmb
 
+handle routing without using a framework
+
+- https://benhoyt.com/writings/go-routing/#regex-table
 
 error handling good practices
 

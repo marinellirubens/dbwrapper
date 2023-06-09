@@ -34,6 +34,7 @@ func (app *App) ProcessMongoRequest(w http.ResponseWriter, r *http.Request) {
 
 // process selects (GET), delete(DELETE) and update(PATCH)
 func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.URL.Path)
 	var (
 		status int
 		result []byte
