@@ -33,6 +33,11 @@ func (app *App) ProcessMongoRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 // process selects (GET), delete(DELETE) and update(PATCH)
+func (app *App) ProcessPostgresRequestHandlePath(w http.ResponseWriter, r *http.Request) {
+	// method to handle path variables
+}
+
+// process selects (GET), delete(DELETE) and update(PATCH)
 func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.URL.Path)
 	var (
