@@ -18,11 +18,15 @@ import (
 	pg "github.com/marinellirubens/dbwrapper/postgres"
 )
 
+// TODO: need to create some treatment on the path variable to understand how to do that without any framework
+
 func ServeApiNative(address string, port int, app *pg.App) {
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/pg", app.ProcessPostgresRequest)
+	mux.HandleFunc("/oracle", app.ProcessOracleRequest)
+	mux.HandleFunc("/mongodb", app.ProcessMongoRequest)
 
 	app.Log.Info(fmt.Sprintf("Starting server on %v", server_path))
 	http.ListenAndServe(server_path, mux)

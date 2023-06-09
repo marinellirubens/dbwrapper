@@ -22,6 +22,16 @@ type App struct {
 	Log *logs.Logger
 }
 
+// TODO: treat the path to use the second element as the name of the database
+func (app *App) ProcessOracleRequest(w http.ResponseWriter, r *http.Request) {
+
+}
+
+// TODO: treat the path to use the second element as the name of the database
+func (app *App) ProcessMongoRequest(w http.ResponseWriter, r *http.Request) {
+
+}
+
 // process selects (GET), delete(DELETE) and update(PATCH)
 func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -29,7 +39,7 @@ func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 		result []byte
 		err    error
 	)
-
+	// treat the method
 	switch method := r.Method; method {
 	case http.MethodGet:
 		query := r.URL.Query().Get("query")
