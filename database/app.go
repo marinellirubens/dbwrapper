@@ -1,4 +1,4 @@
-package postgres
+package database
 
 import (
 	"database/sql"
@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -14,12 +15,32 @@ import (
 
 const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
 
+type DatabaseHandler interface {
+	//ProcessRequest(w http.ResponseWriter, r *http.Request)
+	//ProcessRequestHandlePath(w http.ResponseWriter, r *http.Request)
+	//getFromDatabase(query string) ([]byte, error)
+}
+
+type PostgresHandler struct {
+	db *sql.DB
+}
+
 // Application object to handle the endpoints and connection with database
 type App struct {
 	// database connection
-	Db *sql.DB
+	Postgres PostgresHandler
+	Oracle   *sql.DB
+	Mongo    *sql.DB
 	// logger object for general purposes
 	Log *logs.Logger
+}
+
+func (app *App) IncludeDbConnection(db *sql.DB, handler DatabaseHandler) {
+	fmt.Println(reflect.TypeOf(handler).String())
+	app.Log.Info(reflect.TypeOf(handler).String())
+	if reflect.TypeOf(handler).String() == "database.PostgresHandler" {
+		app.Postgres = PostgresHandler{db: db}
+	}
 }
 
 // TODO: treat the path to use the second element as the name of the database
@@ -39,7 +60,13 @@ func (app *App) ProcessPostgresRequestHandlePath(w http.ResponseWriter, r *http.
 
 // process selects (GET), delete(DELETE) and update(PATCH)
 func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Path)
+	if app.Postgres.db == nil {
+		app.Log.Warning("No posgresql handler was setup")
+
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(nil))
+		return
+	}
 	var (
 		status int
 		result []byte
@@ -116,7 +143,7 @@ func (app *App) updatePostgres(query string) ([]byte, error) {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
 	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
-	_, err = app.Db.Exec(query)
+	_, err = app.Postgres.db.Exec(query)
 	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
@@ -132,7 +159,7 @@ func (app *App) deleteFromPostgres(query string) ([]byte, error) {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
 	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
-	_, err = app.Db.Exec(query)
+	_, err = app.Postgres.db.Exec(query)
 	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
@@ -151,7 +178,7 @@ func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
 	}
 
 	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
-	rows, err := app.Db.Query(query)
+	rows, err := app.Postgres.db.Query(query)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}

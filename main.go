@@ -14,8 +14,8 @@ import (
 	"os"
 
 	cf "github.com/marinellirubens/dbwrapper/config"
+	pg "github.com/marinellirubens/dbwrapper/database"
 	logs "github.com/marinellirubens/dbwrapper/logger"
-	pg "github.com/marinellirubens/dbwrapper/postgres"
 )
 
 // TODO: need to create some treatment on the path variable to understand how to do that without any framework
@@ -56,7 +56,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	application := &pg.App{Db: db, Log: logger}
-
+	application := &pg.App{Log: logger}
+	application.IncludeDbConnection(db, pg.PostgresHandler{})
 	ServeApiNative(host, port, application)
 }
