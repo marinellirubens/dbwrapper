@@ -27,6 +27,9 @@ func (app *App) IncludeDbConnection(db *sql.DB, handler reflect.Type) {
 	app.Log.Info(handler.String())
 	if handler.String() == "database.PostgresHandler" {
 		app.Postgres = PostgresHandler{db: db}
+	} else {
+		app.Log.Info(handler.String())
+		app.Log.Warning("Handler not setup")
 	}
 }
 
@@ -54,11 +57,11 @@ func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(nil))
 		return
 	}
-	var (
-		status int
-		result []byte
-		err    error
-	)
+
+	var status int
+	var result []byte
+	var err error
+
 	// treat the method
 	switch method := r.Method; method {
 	case http.MethodGet:
