@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 
 	cf "github.com/marinellirubens/dbwrapper/config"
 	pg "github.com/marinellirubens/dbwrapper/database"
@@ -57,6 +58,6 @@ func main() {
 		panic(err)
 	}
 	application := &pg.App{Log: logger}
-	application.IncludeDbConnection(db, pg.PostgresHandler{})
+	application.IncludeDbConnection(db, reflect.TypeOf(pg.PostgresHandler{}))
 	ServeApiNative(host, port, application)
 }

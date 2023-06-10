@@ -3,27 +3,15 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
-	"strings"
 	"time"
 
 	logs "github.com/marinellirubens/dbwrapper/logger"
 )
 
 const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
-
-type DatabaseHandler interface {
-	//ProcessRequest(w http.ResponseWriter, r *http.Request)
-	//ProcessRequestHandlePath(w http.ResponseWriter, r *http.Request)
-	//getFromDatabase(query string) ([]byte, error)
-}
-
-type PostgresHandler struct {
-	db *sql.DB
-}
 
 // Application object to handle the endpoints and connection with database
 type App struct {
@@ -35,10 +23,9 @@ type App struct {
 	Log *logs.Logger
 }
 
-func (app *App) IncludeDbConnection(db *sql.DB, handler DatabaseHandler) {
-	fmt.Println(reflect.TypeOf(handler).String())
-	app.Log.Info(reflect.TypeOf(handler).String())
-	if reflect.TypeOf(handler).String() == "database.PostgresHandler" {
+func (app *App) IncludeDbConnection(db *sql.DB, handler reflect.Type) {
+	app.Log.Info(handler.String())
+	if handler.String() == "database.PostgresHandler" {
 		app.Postgres = PostgresHandler{db: db}
 	}
 }
@@ -99,46 +86,10 @@ func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
 	w.Write(result)
 }
 
-// Validate the query command to check for unallowed keywords
-func (app *App) validateQuery(query string) error {
-	words := []string{"delete", "truncate", "drop", "update"}
-	lowerQuery := strings.ToLower(query)
-	for _, key := range words {
-		if strings.Contains(lowerQuery, key) {
-			return errors.New(METHOD_NOT_ALLOWED)
-		}
-	}
-	return nil
-}
-
-// Validate the update command to check for unallowed keywords
-func (app *App) validateUpdate(query string) error {
-	words := []string{"delete", "truncate", "drop"}
-	lowerQuery := strings.ToLower(query)
-	for _, key := range words {
-		if strings.Contains(lowerQuery, key) {
-			return errors.New(METHOD_NOT_ALLOWED)
-		}
-	}
-	return nil
-}
-
-// Validate the delete command to check for unallowed keywords
-func (app *App) validateDelete(query string) error {
-	words := []string{"update", "truncate", "drop"}
-	lowerQuery := strings.ToLower(query)
-	for _, key := range words {
-		if strings.Contains(lowerQuery, key) {
-			return errors.New(METHOD_NOT_ALLOWED)
-		}
-	}
-	return nil
-}
-
 // processes the update on postgresql database
 func (app *App) updatePostgres(query string) ([]byte, error) {
 	start := time.Now()
-	err := app.validateUpdate(query)
+	err := validateUpdate(query)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
@@ -154,7 +105,7 @@ func (app *App) updatePostgres(query string) ([]byte, error) {
 // process the delete process on postgresql database
 func (app *App) deleteFromPostgres(query string) ([]byte, error) {
 	start := time.Now()
-	err := app.validateDelete(query)
+	err := validateDelete(query)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
@@ -172,7 +123,7 @@ func (app *App) deleteFromPostgres(query string) ([]byte, error) {
 //	Validates if the method is GET, if the method is not GET, returns a StatusMethodNotAllowed response
 func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
 	start := time.Now()
-	err := app.validateQuery(query)
+	err := validateQuery(query)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
