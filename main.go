@@ -25,7 +25,9 @@ func ServeApiNative(address string, port int, app *pg.App) {
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	mux := http.NewServeMux()
 
-	mux.Handle("/", http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) { fmt.Println("Root handler:", r.URL.Path) }))
+	mux.Handle("/", http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		fmt.Println("Root handler:", r.URL.Path)
+	}))
 
 	mux.HandleFunc("/pg", app.ProcessPostgresRequest)                                                    // process base request for postgresl
 	mux.Handle("/pg/", http.StripPrefix("/pg/", http.HandlerFunc(app.ProcessPostgresRequestHandlePath))) // process requests with path arguments
