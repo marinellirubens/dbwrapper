@@ -125,10 +125,17 @@ func (app *App) deleteFromPostgres(query string) ([]byte, error) {
 //
 //	Validates if the method is GET, if the method is not GET, returns a StatusMethodNotAllowed response
 func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
+	var err error
+
 	start := time.Now()
-	err := validateQuery(query)
+	err = validateQuery(query)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
+	}
+
+	err = app.Postgres.checkDbConnection()
+	if err != nil {
+		return nil, err
 	}
 
 	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))

@@ -13,7 +13,20 @@ type DatabaseHandler interface {
 }
 
 type PostgresHandler struct {
-	db *sql.DB
+	db                *sql.DB
+	connection_string string
+}
+
+func (handler PostgresHandler) checkDbConnection() error {
+
+	if err := handler.db.Ping(); err != nil {
+		db, err := ConnectToPsql(handler.connection_string)
+		if err != nil {
+			return err
+		}
+		handler.db = db
+	}
+	return nil
 }
 
 // Validate the update command to check for unallowed keywords

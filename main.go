@@ -58,6 +58,6 @@ func main() {
 		panic(err)
 	}
 	application := &pg.App{Log: logger}
-	application.IncludeDbConnection(db, reflect.TypeOf(pg.PostgresHandler{}))
+	application.IncludeDbConnection(db, reflect.TypeOf(pg.PostgresHandler{db: nil, connection_string: psqlInfom}))
 	ServeApiNative(host, port, application)
 }
