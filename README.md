@@ -7,6 +7,14 @@ At first I want to create conections with postgresql, oracle, mysql and mondodb.
 
 Not sure yet how to structure the usage, but will try the connections first and organizing the results, returning always a list with json objects inside.
 
+## When the project will be concluded
+This section is just so a I can have the completion feeling and a goal to achieve
+
+- When I can do on databases (postgres, oracle, mysql, mongodb, redis) the "equivalent" operations for (select, update, delete, insert)
+- JWT authentication
+- log rotation implemented 
+- cli implemented
+
 ## references
 
 golang connections pooling
@@ -35,6 +43,7 @@ creating rest api with only native modules
 handle routing without using a framework
 
 - https://benhoyt.com/writings/go-routing/#regex-table
+
 
 error handling good practices
 
