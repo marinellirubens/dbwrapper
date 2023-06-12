@@ -17,18 +17,23 @@ const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
 type App struct {
 	// database connection
 	Postgres PostgresHandler
-	Oracle   *sql.DB
-	Mongo    *sql.DB
+	Oracle   OracleHandler
+	Mongo    MongoHandler
 	// logger object for general purposes
 	Log *logs.Logger
 }
 
-func (app *App) IncludeDbConnection(db *sql.DB, handler reflect.Type) {
+func (app *App) IncludeDbConnection(db *sql.DB, handler reflect.Type, connection_string string) {
 	app.Log.Info(handler.String())
-	if handler.String() == "database.PostgresHandler" {
-		app.Postgres = PostgresHandler{db: db}
-	} else {
-		app.Log.Info(handler.String())
+
+	switch handlerType := handler.String(); handlerType {
+	case "database.PostgresHandler":
+		app.Postgres = PostgresHandler{db: nil, connection_string: connection_string}
+	case "database.OracleHandler":
+		app.Oracle = OracleHandler{db: nil, connection_string: connection_string}
+	case "database.MongoHandler":
+		app.Mongo = MongoHandler{db: nil, connection_string: connection_string}
+	default:
 		app.Log.Warning("Handler not setup")
 	}
 }

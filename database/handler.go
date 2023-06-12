@@ -10,9 +10,20 @@ type DatabaseHandler interface {
 	//ProcessRequest(w http.ResponseWriter, r *http.Request)
 	//ProcessRequestHandlePath(w http.ResponseWriter, r *http.Request)
 	//getFromDatabase(query string) ([]byte, error)
+	checkDbConnection() error
 }
 
 type PostgresHandler struct {
+	db                *sql.DB
+	connection_string string
+}
+
+type OracleHandler struct {
+	db                *sql.DB
+	connection_string string
+}
+
+type MongoHandler struct {
 	db                *sql.DB
 	connection_string string
 }
