@@ -40,17 +40,33 @@ func (app *App) IncludeDbConnection(db *sql.DB, handler reflect.Type, connection
 
 // TODO: treat the path to use the second element as the name of the database
 func (app *App) ProcessOracleRequest(w http.ResponseWriter, r *http.Request) {
+	if app.Oracle.db == nil {
+		app.Log.Warning("No Oracle handler was setup")
 
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(nil))
+		return
+	}
 }
 
 // TODO: treat the path to use the second element as the name of the database
 func (app *App) ProcessMongoRequest(w http.ResponseWriter, r *http.Request) {
+	if app.Mongo.db == nil {
+		app.Log.Warning("No Mongodb handler was setup")
 
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(nil))
+		return
+	}
 }
 
 // process selects (GET), delete(DELETE) and update(PATCH)
 func (app *App) ProcessPostgresRequestHandlePath(w http.ResponseWriter, r *http.Request) {
 	// method to handle path variables
+	fmt.Println("Path handler:", r.URL.Path)
+	fmt.Println("Path handler:", r.URL.Query().Get("query"))
+	w.WriteHeader(http.StatusNotImplemented)
+	w.Write([]byte(METHOD_NOT_ALLOWED))
 }
 
 // process selects (GET), delete(DELETE) and update(PATCH)
@@ -158,7 +174,7 @@ func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
 	colvals := make([]interface{}, len(cols))
 	for rows.Next() {
 		colassoc := make(map[string]interface{}, len(cols))
-		for i, _ := range colvals {
+		for i := range colvals {
 			colvals[i] = new(interface{})
 		}
 		if err := rows.Scan(colvals...); err != nil {

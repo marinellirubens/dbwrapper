@@ -1,12 +1,13 @@
 package main
 
-//TODO: include connection with redis
-//TODO: include connection with mongodb
-//TODO: include connection with Oracle
-//TODO: include connection with Mysql
-//TODO: include authentication using JWT
-//TODO: implement cli arguments
-//TODO: improve the readme with examples
+// TODO: Include the possibility to use a different path for the ini file
+// TODO: include connection with redis
+// TODO: include connection with mongodb
+// TODO: include connection with Oracle
+// TODO: include connection with Mysql
+// TODO: include authentication using JWT
+// TODO: implement cli arguments
+// TODO: improve the readme with examples
 import (
 	"fmt"
 	"log"
@@ -29,8 +30,17 @@ func ServeApiNative(address string, port int, app *pg.App) {
 		fmt.Println("Root handler:", r.URL.Path)
 	}))
 
-	mux.HandleFunc("/pg", app.ProcessPostgresRequest)                                                    // process base request for postgresl
-	mux.Handle("/pg/", http.StripPrefix("/pg/", http.HandlerFunc(app.ProcessPostgresRequestHandlePath))) // process requests with path arguments
+	// process base request for postgresl
+	mux.HandleFunc(
+		"/pg",
+		app.ProcessPostgresRequest,
+	)
+
+	// process requests with path arguments
+	mux.Handle(
+		"/pg/",
+		http.StripPrefix("/pg/", http.HandlerFunc(app.ProcessPostgresRequestHandlePath)),
+	)
 
 	mux.HandleFunc("/oracle", app.ProcessOracleRequest)
 	mux.HandleFunc("/mongodb", app.ProcessMongoRequest)

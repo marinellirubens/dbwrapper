@@ -6,6 +6,8 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// TODO: include the possibility to get the configuration file from a different path
+
 // gets the configuration file
 func GetInfoFile(filename ...string) (*ini.File, error) {
 	var file_path string

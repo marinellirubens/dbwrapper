@@ -18,10 +18,10 @@ const (
 
 // log type
 const (
-	//writes the logs on the terminal
+	// writes the logs on the terminal
 	STREAM_WRITER = 777
 
-	//writes the logs on a file
+	// writes the logs on a file
 	FILE_WRITER = 999
 )
 
