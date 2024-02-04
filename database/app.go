@@ -28,11 +28,14 @@ func (app *App) IncludeDbConnection(db *sql.DB, handler reflect.Type, connection
 
 	switch handlerType := handler.String(); handlerType {
 	case "database.PostgresHandler":
-		app.Postgres = PostgresHandler{db: nil, connection_string: connection_string}
+		app.Log.Debug("Including postgres handler")
+		app.Postgres = PostgresHandler{db: db, connection_string: connection_string}
 	case "database.OracleHandler":
-		app.Oracle = OracleHandler{db: nil, connection_string: connection_string}
+		app.Log.Debug("Including oracle handler")
+		app.Oracle = OracleHandler{db: db, connection_string: connection_string}
 	case "database.MongoHandler":
-		app.Mongo = MongoHandler{db: nil, connection_string: connection_string}
+		app.Log.Debug("Including mongo handler")
+		app.Mongo = MongoHandler{db: db, connection_string: connection_string}
 	default:
 		app.Log.Warning("Handler not setup")
 	}
@@ -71,6 +74,7 @@ func (app *App) ProcessPostgresRequestHandlePath(w http.ResponseWriter, r *http.
 
 // process selects (GET), delete(DELETE) and update(PATCH)
 func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
+	// method to handle path variables
 	if app.Postgres.db == nil {
 		app.Log.Warning("No posgresql handler was setup")
 
