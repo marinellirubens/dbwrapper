@@ -50,7 +50,7 @@ func ServeApiNative(address string, port int, app *pg.App) {
 }
 
 func main() {
-	logger, err := logs.CreateLogger("server.log", logs.DEBUG, logs.STREAM_WRITER)
+	logger, err := logs.CreateLogger("/tmp/server.log", logs.DEBUG, []int{logs.STREAM_WRITER, logs.FILE_WRITER})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,6 +67,9 @@ func main() {
 	psqlInfom := pg.GetConnectionInfo(cfg)
 	db, err := pg.ConnectToPsql(psqlInfom)
 	if err != nil {
+		panic(err)
+	}
+	if err := db.Ping(); err != nil {
 		panic(err)
 	}
 	application := &pg.App{Log: logger}

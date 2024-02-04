@@ -56,11 +56,15 @@ var (
 	}
 )
 
-// TODO: Implement log rotation
-type Logger struct {
+type Handler struct {
 	logger   *log.Logger
 	logLevel int
 	logType  int
+}
+
+// TODO: Implement log rotation
+type Logger struct {
+	handlers []*Handler
 }
 
 // converts log level to text with color
@@ -75,7 +79,7 @@ func levelToText(logLevel int, withColor bool) string {
 }
 
 // generic log method
-func (l *Logger) log(message string, logLevel int) {
+func (l *Handler) log(message string, logLevel int) {
 	var withColor bool
 	if l.logType == STREAM_WRITER {
 		withColor = true
@@ -87,36 +91,46 @@ func (l *Logger) log(message string, logLevel int) {
 
 // logs message using level Info
 func (l *Logger) Info(message string) {
-	if l.logLevel <= INFO {
-		l.log(message, INFO)
+	for _, handler := range l.handlers {
+		if handler.logLevel <= INFO {
+			handler.log(message, INFO)
+		}
 	}
 }
 
 // logs message using level Debug
 func (l *Logger) Debug(message string) {
-	if l.logLevel <= DEBUG {
-		l.log(message, DEBUG)
+	for _, handler := range l.handlers {
+		if handler.logLevel <= DEBUG {
+			handler.log(message, DEBUG)
+		}
 	}
 }
 
 // logs message using level Warning
 func (l *Logger) Warning(message string) {
-	if l.logLevel <= WARNING {
-		l.log(message, WARNING)
+	for _, handler := range l.handlers {
+		if handler.logLevel <= WARNING {
+			handler.log(message, WARNING)
+		}
 	}
 }
 
 // logs message using level Error
 func (l *Logger) Error(message string) {
-	if l.logLevel <= ERROR {
-		l.log(message, ERROR)
+	for _, handler := range l.handlers {
+		if handler.logLevel <= ERROR {
+			handler.log(message, ERROR)
+		}
 	}
 }
 
 // logs message using level Fatal
 func (l *Logger) Fatal(message string) {
-	if l.logLevel <= FATAL {
-		l.log(message, FATAL)
+	for _, handler := range l.handlers {
+		if handler.logLevel <= FATAL {
+			handler.log(message, FATAL)
+		}
 	}
 }
 
@@ -127,32 +141,38 @@ func (l *Logger) Fatal(message string) {
 // example:
 //
 //	logger, err := CreateLogger("server.log", logger.DEBUG, logger.STREAM_WRITER)
-func CreateLogger(logFile string, logLevel int, logType int) (*Logger, error) {
+func CreateLogger(logFile string, logLevel int, logTypes []int) (*Logger, error) {
 	flags := log.Ldate | log.Ltime | log.Lshortfile
 
 	var output *os.File
 	var err error
-
-	if logType == FILE_WRITER {
-		file, err := os.Create(logFile)
-		if err != nil {
-			defer file.Close()
-			return nil, err
-		}
-		output = file
-	} else if logType == STREAM_WRITER {
-		output = os.Stdout
-	} else {
-		panic("Log type invalid")
-	}
+	var handlers []*Handler
 	var internalLogger *log.Logger
 
-	internalLogger = log.New(output, "", flags)
+	for _, logType := range logTypes {
+		if logType == FILE_WRITER {
+			file, err := os.Create(logFile)
+			if err != nil {
+				defer file.Close()
+				return nil, err
+			}
+			output = file
+		} else if logType == STREAM_WRITER {
+			output = os.Stdout
+		} else {
+			panic("Log type invalid")
+		}
+		internalLogger = log.New(output, "", flags)
+		handler := &Handler{
+			logger:   internalLogger,
+			logLevel: logLevel,
+			logType:  logType,
+		}
+		handlers = append(handlers, handler)
+	}
 
 	logger := &Logger{
-		logger:   internalLogger,
-		logLevel: logLevel,
-		logType:  logType,
+		handlers: handlers,
 	}
 	return logger, err
 }
