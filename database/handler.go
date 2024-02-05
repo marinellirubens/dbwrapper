@@ -7,9 +7,9 @@ import (
 )
 
 type DatabaseHandler interface {
-	//ProcessRequest(w http.ResponseWriter, r *http.Request)
-	//ProcessRequestHandlePath(w http.ResponseWriter, r *http.Request)
-	//getFromDatabase(query string) ([]byte, error)
+	// ProcessRequest(w http.ResponseWriter, r *http.Request)
+	// ProcessRequestHandlePath(w http.ResponseWriter, r *http.Request)
+	// getFromDatabase(query string) ([]byte, error)
 	checkDbConnection() error
 }
 
@@ -29,7 +29,6 @@ type MongoHandler struct {
 }
 
 func (handler PostgresHandler) checkDbConnection() error {
-
 	if err := handler.db.Ping(); err != nil {
 		db, err := ConnectToPsql(handler.connection_string)
 		if err != nil {
