@@ -8,21 +8,21 @@ import (
 
 // log level
 const (
-	NONE    = 0
-	DEBUG   = 10
-	INFO    = 20
-	WARNING = 30
-	ERROR   = 40
-	FATAL   = 50
+	NONE    = uint8(0)
+	DEBUG   = uint8(10)
+	INFO    = uint8(20)
+	WARNING = uint8(30)
+	ERROR   = uint8(40)
+	FATAL   = uint8(50)
 )
 
 // log type
 const (
 	// writes the logs on the terminal
-	STREAM_WRITER = 777
+	STREAM_WRITER = uint16(777)
 
 	// writes the logs on a file
-	FILE_WRITER = 999
+	FILE_WRITER = uint16(999)
 )
 
 const (
@@ -37,29 +37,29 @@ const (
 )
 
 var (
-	levelTxt map[int]string = map[int]string{
-		0:  "NONE",
-		10: "DEBUG",
-		20: "INFO",
-		30: "WARNING",
-		40: "ERROR",
-		50: "FATAL",
+	levelTxt map[uint8]string = map[uint8]string{
+		uint8(0):  "NONE",
+		uint8(10): "DEBUG",
+		uint8(20): "INFO",
+		uint8(30): "WARNING",
+		uint8(40): "ERROR",
+		uint8(50): "FATAL",
 	}
 
-	levelTxtWithColor map[int]string = map[int]string{
-		0:  "NONE",
-		10: green + "DEBUG" + reset,
-		20: blue + "INFO" + reset,
-		30: yellow + "WARNING" + reset,
-		40: red + "ERROR" + reset,
-		50: red + "FATAL" + reset,
+	levelTxtWithColor map[uint8]string = map[uint8]string{
+		uint8(0):  "NONE",
+		uint8(10): green + "DEBUG" + reset,
+		uint8(20): blue + "INFO" + reset,
+		uint8(30): yellow + "WARNING" + reset,
+		uint8(40): red + "ERROR" + reset,
+		uint8(50): red + "FATAL" + reset,
 	}
 )
 
 type Handler struct {
 	logger   *log.Logger
-	logLevel int
-	logType  int
+	logLevel uint8
+	logType  uint16
 }
 
 // TODO: Implement log rotation
@@ -68,7 +68,7 @@ type Logger struct {
 }
 
 // converts log level to text with color
-func levelToText(logLevel int, withColor bool) string {
+func levelToText(logLevel uint8, withColor bool) string {
 	var ret string
 	if withColor {
 		ret = fmt.Sprint(levelTxtWithColor[logLevel])
@@ -79,7 +79,7 @@ func levelToText(logLevel int, withColor bool) string {
 }
 
 // generic log method
-func (l *Handler) log(message string, logLevel int) {
+func (l *Handler) log(message string, logLevel uint8) {
 	var withColor bool
 	if l.logType == STREAM_WRITER {
 		withColor = true
@@ -141,7 +141,7 @@ func (l *Logger) Fatal(message string) {
 // example:
 //
 //	logger, err := CreateLogger("server.log", logger.DEBUG, logger.STREAM_WRITER)
-func CreateLogger(logFile string, logLevel int, logTypes []int) (*Logger, error) {
+func CreateLogger(logFile string, logLevel uint8, logTypes []uint16) (*Logger, error) {
 	flags := log.Ldate | log.Ltime | log.Lshortfile
 
 	var output *os.File

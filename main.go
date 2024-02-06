@@ -50,7 +50,7 @@ func ServeApiNative(address string, port int, app *pg.App) {
 }
 
 func main() {
-	logger, err := logs.CreateLogger("/tmp/server.log", logs.DEBUG, []int{logs.STREAM_WRITER, logs.FILE_WRITER})
+	logger, err := logs.CreateLogger("/tmp/server.log", logs.DEBUG, []uint16{logs.STREAM_WRITER, logs.FILE_WRITER})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "github.com/lib/pq"
 	"gopkg.in/ini.v1"
@@ -45,17 +46,18 @@ func GetConnectionInfo(cfg *ini.File) string {
 }
 
 func ConnectToPsql(psqlInfo string) (*sql.DB, error) {
-	//return nil, nil
+	// return nil, nil
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
 	}
-	//defer db.Close()
+	// defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
+		log.Println("Error: Could not establish a connection with the portgres database", err.Error())
 		panic(err)
 	}
-	fmt.Println("Successfully connected!")
+	log.Println("Successfully connected!")
 	return db, nil
 }
