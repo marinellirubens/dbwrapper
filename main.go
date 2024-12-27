@@ -50,15 +50,19 @@ func ServeApiNative(address string, port int, app *pg.App) {
 }
 
 func main() {
-	logger, err := logs.CreateLogger("/tmp/server.log", logs.DEBUG, []uint16{logs.STREAM_WRITER, logs.FILE_WRITER})
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	cfg, err := cf.GetInfoFile("./config/config.ini")
 	if err != nil {
 		log.Fatal("error processing configuration file")
 		os.Exit(1)
+	}
+
+	logger, err := logs.CreateLogger(
+		cfg.Section("SERVER").Key("LOGGER_FILE").String(),
+		logs.DEBUG,
+		[]uint16{logs.STREAM_WRITER, logs.FILE_WRITER},
+	)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	host := cfg.Section("SERVER").Key("SERVER_ADDRESS").String()
