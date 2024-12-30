@@ -46,11 +46,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// TODO: need to create some treatment on the path variable to understand how to do that without any framework
-func ServeApiNative(address string, port int, app *pg.App) {
-	server_path := fmt.Sprintf("%v:%v", address, port)
-	mux := http.NewServeMux()
-
+func SetupRoutes(mux *http.ServeMux, app *pg.App) (http.Handler, error) {
 	mux.Handle("/", http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		fmt.Println("Root handler:", r.URL.Path)
 	}))
@@ -66,7 +62,18 @@ func ServeApiNative(address string, port int, app *pg.App) {
 
 	mux.HandleFunc("/oracle", app.ProcessOracleRequest)
 	mux.HandleFunc("/mongodb", app.ProcessMongoRequest)
-	handler := corsMiddleware(mux)
+	return corsMiddleware(mux), nil
+}
+
+// TODO: need to create some treatment on the path variable to understand how to do that without any framework
+func ServeApiNative(address string, port int, app *pg.App) {
+	server_path := fmt.Sprintf("%v:%v", address, port)
+	mux := http.NewServeMux()
+
+	handler, err := SetupRoutes(mux, app)
+	if err != nil {
+		panic("Error setting up the routes")
+	}
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", port),
@@ -77,7 +84,7 @@ func ServeApiNative(address string, port int, app *pg.App) {
 	}
 	app.Log.Info(fmt.Sprintf("Starting server on %v", server_path))
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		panic(fmt.Sprintf("http server error: %s", err))
 	}
