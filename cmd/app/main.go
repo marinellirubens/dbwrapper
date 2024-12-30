@@ -146,6 +146,17 @@ func main() {
 				Value:       cf.DefaultCfgFilePath,
 				Destination: &cfgPath,
 			},
+			&cli.BoolFlag{
+				Name:    "version",
+				Usage:   "Path for the configuration file",
+				Aliases: []string{"v"},
+				Value:   false,
+				Action: func(ctx *cli.Context, b bool) error {
+					fmt.Printf("Version: %v\n", VERSION)
+					os.Exit(0)
+					return nil
+				},
+			},
 		},
 		Action: func(cCtx *cli.Context) error {
 			fmt.Println("path: ", cfgPath)
