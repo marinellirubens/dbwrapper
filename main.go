@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"time"
 
 	cf "github.com/marinellirubens/dbwrapper/config"
 	pg "github.com/marinellirubens/dbwrapper/database"
@@ -24,6 +25,25 @@ func exportNotes(cCtx *cli.Context) error {
 	fileExport := cCtx.String("output")
 	fmt.Println("Notes exported to file "+cCtx.String("output"), fileExport)
 	return nil
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*") // Replace "*" with specific origins if needed
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, X-CSRF-Token")
+		w.Header().Set("Access-Control-Allow-Credentials", "false") // Set to "true" if credentials are required
+
+		// Handle preflight OPTIONS requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// Proceed with the next handler
+		next.ServeHTTP(w, r)
+	})
 }
 
 // TODO: need to create some treatment on the path variable to understand how to do that without any framework
@@ -46,9 +66,21 @@ func ServeApiNative(address string, port int, app *pg.App) {
 
 	mux.HandleFunc("/oracle", app.ProcessOracleRequest)
 	mux.HandleFunc("/mongodb", app.ProcessMongoRequest)
+	handler := corsMiddleware(mux)
 
+	server := &http.Server{
+		Addr:         fmt.Sprintf(":%d", port),
+		Handler:      handler,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
 	app.Log.Info(fmt.Sprintf("Starting server on %v", server_path))
-	http.ListenAndServe(server_path, mux)
+
+	err := server.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+		panic(fmt.Sprintf("http server error: %s", err))
+	}
 }
 
 func run_server(cfgPath string) {
