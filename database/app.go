@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	logs "github.com/marinellirubens/dbwrapper/logger"
+	logs "github.com/marinellirubens/dbwrapper/internal/logger"
 )
 
 const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"

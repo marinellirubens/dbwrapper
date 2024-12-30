@@ -15,9 +15,9 @@ import (
 	"reflect"
 	"time"
 
-	cf "github.com/marinellirubens/dbwrapper/config"
 	pg "github.com/marinellirubens/dbwrapper/database"
-	logs "github.com/marinellirubens/dbwrapper/logger"
+	cf "github.com/marinellirubens/dbwrapper/internal/config"
+	logs "github.com/marinellirubens/dbwrapper/internal/logger"
 	cli "github.com/urfave/cli/v2"
 )
 

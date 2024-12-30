@@ -9,7 +9,7 @@ import (
 )
 
 // Variable to contain the default path for the configuration file
-const DefaultCfgFilePath = "./config/config.ini"
+const DefaultCfgFilePath = "./config.ini"
 
 // gets the configuration file
 func GetInfoFile(filename ...string) (*ini.File, error) {
