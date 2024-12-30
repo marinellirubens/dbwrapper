@@ -125,11 +125,22 @@ func (app *App) updatePostgres(query string) ([]byte, error) {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
 	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
-	_, err = app.Postgres.db.Exec(query)
+	result, err := app.Postgres.db.Exec(query)
 	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
 	if err != nil {
-		return []byte(fmt.Sprintf("%v", err)), err
+		app.Log.Error(fmt.Sprintf("%s", err))
+		return []byte(fmt.Sprintf("%v\n", err)), err
+	} else {
+		lastInsert, _ := result.LastInsertId()
+		rowsAfected, _ := result.RowsAffected()
+		app.Log.Debug(
+			fmt.Sprintf(
+				"Process result LastInsertId:%v RowsAffected: %v",
+				lastInsert, rowsAfected,
+			),
+		)
 	}
+
 	return []byte("Success"), nil
 }
 

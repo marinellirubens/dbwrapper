@@ -72,7 +72,7 @@ func sqlOperations(db *sql.DB) {
 	fmt.Println("The time in the database ", queryResultColumnOne, queryResultColumnTwo)
 }
 
-func closeConn(db *sql.DB) {
+func CloseConn(db *sql.DB) {
 	fmt.Println("Closing connection")
 	err := db.Close()
 	if err != nil {

@@ -21,6 +21,8 @@ import (
 	cli "github.com/urfave/cli/v2"
 )
 
+const VERSION = "1.0.0"
+
 func exportNotes(cCtx *cli.Context) error {
 	fileExport := cCtx.String("output")
 	fmt.Println("Notes exported to file "+cCtx.String("output"), fileExport)
@@ -120,14 +122,14 @@ func run_server(cfgPath string) {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer pg.CloseConn(db)
+
 	if err := db.Ping(); err != nil {
 		panic(err)
 	}
 	application := &pg.App{Log: logger}
 	application.IncludeDbConnection(db, reflect.TypeOf(pg.PostgresHandler{}), psqlInfom)
 	ServeApiNative(host, port, application)
-
 }
 
 func main() {
