@@ -1,0 +1,7 @@
+{
+    "Database": {
+        "HOst": "local",
+        "UsER": "postgres",
+        "port": 1000
+    }
+}
