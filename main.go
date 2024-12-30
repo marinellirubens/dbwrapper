@@ -81,12 +81,14 @@ func run_server(cfgPath string) {
 	if err != nil {
 		panic(err)
 	}
+	defer db.Close()
 	if err := db.Ping(); err != nil {
 		panic(err)
 	}
 	application := &pg.App{Log: logger}
 	application.IncludeDbConnection(db, reflect.TypeOf(pg.PostgresHandler{}), psqlInfom)
 	ServeApiNative(host, port, application)
+
 }
 
 func main() {
