@@ -35,6 +35,9 @@ func ServeApiNative(address string, port int, app *pg.App) {
 		fmt.Println("Root handler:", r.URL.Path)
 	}))
 
+	// process base request for postgresl
+	mux.HandleFunc("/pg", app.ProcessPostgresRequest)
+
 	// process requests with path arguments
 	mux.Handle(
 		"/pg/",
