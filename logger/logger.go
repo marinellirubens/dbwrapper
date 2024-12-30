@@ -85,7 +85,7 @@ func (l *Handler) log(message string, logLevel uint8) {
 		withColor = true
 	}
 	level := levelToText(logLevel, withColor)
-	text_to_print := fmt.Sprintf("[DBWRAPPER][%s] - %s%s", level, message, reset)
+	text_to_print := fmt.Sprintf("[%s] - %s%s", level, message, reset)
 	l.logger.Println(text_to_print)
 }
 
@@ -142,7 +142,7 @@ func (l *Logger) Fatal(message string) {
 //
 //	logger, err := CreateLogger("server.log", logger.DEBUG, logger.STREAM_WRITER)
 func CreateLogger(logFile string, logLevel uint8, logTypes []uint16) (*Logger, error) {
-	flags := log.Ldate | log.Ltime | log.Lshortfile
+	flags := log.Ldate | log.Ltime
 
 	var output *os.File
 	var err error

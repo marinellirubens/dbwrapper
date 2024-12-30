@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 	"time"
 
 	logs "github.com/marinellirubens/dbwrapper/logger"
@@ -68,7 +69,7 @@ func (app *App) ProcessMongoRequest(w http.ResponseWriter, r *http.Request) {
 // process selects (GET), delete(DELETE) and update(PATCH)
 func (app *App) ProcessPostgresRequestHandlePath(w http.ResponseWriter, r *http.Request) {
 	// method to handle path variables
-	fmt.Println("Path handler:", r.URL.Path)
+	fmt.Printf("Path handler:/%s\n", strings.Trim(r.URL.Path, " "))
 	fmt.Println("Path handler:", r.URL.Query().Get("query"))
 	w.WriteHeader(http.StatusNotImplemented)
 	w.Write([]byte(METHOD_NOT_ALLOWED))
