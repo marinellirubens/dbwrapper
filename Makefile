@@ -8,3 +8,5 @@ run: build
 	fi
 	@./bin/dbwrapper -f config.ini
 
+tests:
+	@go test -v $(shell go list ./...)
