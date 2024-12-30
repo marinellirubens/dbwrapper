@@ -1,7 +1,5 @@
 package config
 
-// TODO: include the possibility to get the configuration file from a different path
-
 import (
 	"fmt"
 
