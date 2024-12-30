@@ -14,6 +14,9 @@ const DefaultCfgFilePath = "./config/config.ini"
 // gets the configuration file
 func GetInfoFile(filename ...string) (*ini.File, error) {
 	var file_path string
+	//example of reading a json file
+	//jsonFile, err := json.NewDecoder(DefaultCfgFilePath)
+
 	if len(filename) == 0 {
 		file_path = DefaultCfgFilePath
 	} else {
