@@ -109,13 +109,6 @@ func run_server(cfgPath string) {
 		log.Fatal("error processing configuration file")
 		os.Exit(1)
 	}
-	listDelimiter := cfg.Section("DEFAULT").Key("LIST_DELIMITER").String()
-	//fmt.Println("List delimiter", listDelimiter)
-	//fmt.Println(cfg.SectionStrings())
-	//fmt.Println(cfg.Section("POSTGRES").Key("barlist").Strings(listDelimiter))
-	for i, v := range cfg.Section("POSTGRES").Key("barlist").Strings(listDelimiter) {
-		fmt.Printf("Barlist item %d: %v\n", i, v)
-	}
 	logger, err := logs.CreateLogger(
 		cfg.Section("SERVER").Key("LOGGER_FILE").String(),
 		logs.DEBUG,
