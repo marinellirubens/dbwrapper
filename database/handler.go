@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -76,4 +77,12 @@ func validateQuery(query string) error {
 		}
 	}
 	return nil
+}
+
+func CloseConn(db *sql.DB) {
+	fmt.Println("Closing connection")
+	err := db.Close()
+	if err != nil {
+		fmt.Println("Can't close connection: ", err)
+	}
 }

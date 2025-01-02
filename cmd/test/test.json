@@ -1,7 +1,25 @@
 {
-    "Database": {
-        "HOst": "local",
-        "UsER": "postgres",
-        "port": 1000
-    }
+  "Server": {
+    "server_port": 8080,
+    "server_address": "",
+    "logger_file": "/tmp/server.log"
+  },
+    "Databases": [{
+      "dbid": "localdb",
+      "host": "localhost",
+      "port": 5432,
+      "user": "myusername",
+      "password": "mypassword",
+      "dbname": "myusername",
+      "dbtype": "postgres"
+    },
+    {
+      "dbid": "localdb2",
+      "host": "localhost",
+      "port": 5432,
+      "user": "myusername",
+      "password": "mypassword",
+      "dbname": "myusername",
+      "dbtype": "postgres"
+    } ]
 }

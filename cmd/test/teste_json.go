@@ -1,10 +1,9 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
-	"os"
+
+	cfg "github.com/marinellirubens/dbwrapper/internal/config"
 )
 
 type Config struct {
@@ -18,14 +17,24 @@ type Config struct {
 }
 
 func main() {
-	config := Config{}
-
-	configFile, err := os.Open("./test.json")
-	defer configFile.Close()
+	//dbl.SetMapping()
+	configJson, err := cfg.GetJsonConfig("./test.json")
 	if err != nil {
 		log.Fatal(err)
 	}
-	jsonParser := json.NewDecoder(configFile)
-	jsonParser.Decode(&config)
-	fmt.Println(config.Database.Port)
+	configJson.PrintInfo()
+
+	//config := Config{}
+	//configFile, err := os.Open("./test.json")
+	//if err != nil {
+	//log.Fatal(err)
+	//}
+	//defer configFile.Close()
+	//jsonParser := json.NewDecoder(configFile)
+	//err = jsonParser.Decode(&config)
+	//if err != nil {
+	//fmt.Printf("error parsing json %v", err)
+	//}
+	//fmt.Println("port", config.Database.Port)
+	//dbl.TestConnection()
 }

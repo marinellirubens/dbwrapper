@@ -8,14 +8,9 @@ import (
 	_ "github.com/sijms/go-ora/v2"
 )
 
-func GetSqlDBWithPureDriver(dbParams map[string]string) *sql.DB {
-	connectionString := fmt.Sprintf("oracle://%s:%s@%s:%s/%s",
-		dbParams["username"],
-		dbParams["password"],
-		dbParams["server"],
-		dbParams["port"],
-		dbParams["service"],
-	)
+func GetOracleConnection(dbInfo OracleConnectionInfo) *sql.DB {
+	connectionString := dbInfo.GetConnString()
+
 	fmt.Println("Opening connection with oracle")
 	db, err := sql.Open("oracle", connectionString)
 	if err != nil {
@@ -26,14 +21,6 @@ func GetSqlDBWithPureDriver(dbParams map[string]string) *sql.DB {
 		panic(fmt.Errorf("error pinging db: %w", err))
 	}
 	return db
-}
-
-var localDB = map[string]string{
-	"service":  "LGBRTMST",
-	"username": "tms_if",
-	"server":   "136.166.34.123",
-	"port":     "3006",
-	"password": "Qtms108!",
 }
 
 func sqlOperations(db *sql.DB) {
@@ -72,16 +59,17 @@ func sqlOperations(db *sql.DB) {
 	fmt.Println("The time in the database ", queryResultColumnOne, queryResultColumnTwo)
 }
 
-func CloseConn(db *sql.DB) {
-	fmt.Println("Closing connection")
-	err := db.Close()
-	if err != nil {
-		fmt.Println("Can't close connection: ", err)
+func TestConnection() {
+	var localDB = OracleConnectionInfo{
+		Service:  "LGBRTMST",
+		User:     "tms_if",
+		Server:   "136.166.34.123",
+		Port:     3006,
+		Dbtype:   ORACLE,
+		password: "Qtms108!",
 	}
-}
 
-//func main() {
-//db := GetSqlDBWithPureDriver(localDB)
-//defer closeConn(db)
-//sqlOperations(db)
-//}
+	db := GetOracleConnection(localDB)
+	defer CloseConn(db)
+	sqlOperations(db)
+}
