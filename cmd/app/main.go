@@ -109,8 +109,13 @@ func run_server(cfgPath string) {
 		log.Fatal("error processing configuration file")
 		os.Exit(1)
 	}
+	cfgj, err := cf.GetJsonConfig("./test.json")
+	if err != nil {
+		log.Fatal("error processing configuration file")
+		os.Exit(1)
+	}
 	logger, err := logs.CreateLogger(
-		cfg.Section("SERVER").Key("LOGGER_FILE").String(),
+		cfgj.Server.Logger_file,
 		logs.DEBUG,
 		[]uint16{logs.STREAM_WRITER, logs.FILE_WRITER},
 	)
@@ -118,8 +123,8 @@ func run_server(cfgPath string) {
 		log.Fatal(err)
 	}
 
-	host := cfg.Section("SERVER").Key("SERVER_ADDRESS").String()
-	port, _ := cfg.Section("SERVER").Key("SERVER_PORT").Int()
+	host := cfgj.Server.Server_address
+	port := cfgj.Server.Server_port
 
 	psqlInfom := pg.GetConnectionInfo(cfg)
 	db, err := pg.ConnectToPsql(psqlInfom)
