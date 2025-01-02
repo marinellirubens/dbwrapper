@@ -3,6 +3,8 @@ package database
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/marinellirubens/dbwrapper/internal/config"
 )
 
 const (
@@ -15,6 +17,8 @@ type DbConnection interface {
 	GetConnString() string
 	// Returns basic connection info to be printed or logged without sensitive info
 	GetConnInfo() string
+	// Returns the db connection
+	//GetDb() *sql.DB
 }
 
 // implements [DbConnection] interface
@@ -94,6 +98,33 @@ func (conn *PgConnectionInfo) GetConnInfo() string {
 }
 
 var dbConnections map[string]DbConnection = map[string]DbConnection{}
+
+func SetOracleConnection(connInfo config.Database) OracleConnectionInfo {
+	// Add an OracleConnectionInfo
+	oracleConn := OracleConnectionInfo{
+		Server:   connInfo.Host,
+		Port:     connInfo.Port,
+		User:     connInfo.User,
+		password: connInfo.Password,
+		Service:  connInfo.Service,
+		Dbtype:   ORACLE,
+	}
+	return oracleConn
+}
+
+func SetPostgresConnection(connInfo config.Database) PgConnectionInfo {
+	// Add an OracleConnectionInfo
+	pgConn := PgConnectionInfo{
+		Host:     connInfo.Host,
+		Port:     connInfo.Port,
+		User:     connInfo.User,
+		password: connInfo.Password,
+		Dbname:   connInfo.Dbname,
+		Dbtype:   POSTGRES,
+	}
+
+	return pgConn
+}
 
 func SetMapping() string {
 	// Add an OracleConnectionInfo

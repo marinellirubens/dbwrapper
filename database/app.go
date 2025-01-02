@@ -14,13 +14,14 @@ import (
 
 const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
 
-
 // Application object to handle the endpoints and connection with database
 type App struct {
 	// database connection
-	Postgres PostgresHandler
-	Oracle   OracleHandler
-	Mongo    MongoHandler
+	Postgres   PostgresHandler
+	Oracle     OracleHandler
+	Mongo      MongoHandler
+	DbHandlers map[string]DbConnection
+	DbConns    map[string]*sql.DB
 	// logger object for general purposes
 	Log *logs.Logger
 }
@@ -72,6 +73,40 @@ func (app *App) ProcessPostgresRequestHandlePath(w http.ResponseWriter, r *http.
 	fmt.Println("Path handler:", r.URL.Query().Get("query"))
 	w.WriteHeader(http.StatusNotImplemented)
 	w.Write([]byte(METHOD_NOT_ALLOWED))
+}
+
+func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
+	// method to handle path variables
+	var status int
+	var result []byte
+	var err error
+
+	// treat the method
+	switch method := r.Method; method {
+	case http.MethodGet:
+		query := r.URL.Query().Get("query")
+		dbId := r.Header.Get("dbname")
+		handler, ok := app.DbHandlers[dbId]
+		if !ok {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Database not located"))
+			return
+		}
+		result, err = getQueryFromDatabase(query, handler.db, app)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+
+	if err != nil {
+		status = http.StatusBadRequest
+	} else {
+		status = http.StatusOK
+	}
+
+	w.WriteHeader(status)
+	w.Write(result)
 }
 
 // process selects (GET), delete(DELETE) and update(PATCH)
@@ -178,6 +213,62 @@ func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
 
 	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
 	rows, err := app.Postgres.db.Query(query)
+	if err != nil {
+		return []byte(fmt.Sprintf("%v", err)), err
+	}
+
+	cols, err := rows.Columns()
+	if err != nil {
+		panic(err)
+	}
+
+	allgeneric := make([]map[string]interface{}, 0)
+	colvals := make([]interface{}, len(cols))
+	for rows.Next() {
+		colassoc := make(map[string]interface{}, len(cols))
+		for i := range colvals {
+			colvals[i] = new(interface{})
+		}
+		if err := rows.Scan(colvals...); err != nil {
+			panic(err)
+		}
+
+		for i, col := range cols {
+			colassoc[col] = *colvals[i].(*interface{})
+		}
+		allgeneric = append(allgeneric, colassoc)
+	}
+
+	err2 := rows.Close()
+	if err2 != nil {
+		panic(err2)
+	}
+
+	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
+	js, _ := json.Marshal(allgeneric)
+
+	return js, nil
+}
+
+// Requests information from the database
+//
+//	Validates if the method is GET, if the method is not GET, returns a StatusMethodNotAllowed response
+func getQueryFromDatabase(query string, db *sql.DB, app *App) ([]byte, error) {
+	var err error
+
+	start := time.Now()
+	err = validateQuery(query)
+	if err != nil {
+		return []byte(fmt.Sprintf("%v", err)), err
+	}
+
+	err = checkDbConnection(db)
+	if err != nil {
+		return nil, err
+	}
+
+	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
+	rows, err := db.Query(query)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}

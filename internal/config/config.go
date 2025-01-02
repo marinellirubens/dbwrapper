@@ -16,9 +16,10 @@ type Database struct {
 	Id       string `json:"dbid"`
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
-	User     string `json:"user "`
+	User     string `json:"user"`
 	Dbname   string `json:"dbname"`
 	Dbtype   string `json:"dbtype"`
+	Service  string `json:"service"`
 	Password string `json:"password"`
 }
 

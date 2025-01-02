@@ -15,7 +15,6 @@ type DatabaseHandler interface {
 }
 
 type PostgresHandler struct {
-	DatabaseHandler
 	db                *sql.DB
 	connection_string string
 }
@@ -23,13 +22,11 @@ type PostgresHandler struct {
 type OracleHandler struct {
 	db                *sql.DB
 	connection_string string
-	DatabaseHandler
 }
 
 type MongoHandler struct {
 	db                *sql.DB
 	connection_string string
-	DatabaseHandler
 }
 
 func (handler PostgresHandler) checkDbConnection() error {
@@ -39,6 +36,13 @@ func (handler PostgresHandler) checkDbConnection() error {
 			return err
 		}
 		handler.db = db
+	}
+	return nil
+}
+
+func checkDbConnection(db *sql.DB) error {
+	if err := db.Ping(); err != nil {
+		return err
 	}
 	return nil
 }
