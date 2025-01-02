@@ -14,7 +14,6 @@ import (
 
 const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
 
-var dbMapping map[string]interface{} = map[string]interface{}{}
 
 // Application object to handle the endpoints and connection with database
 type App struct {
