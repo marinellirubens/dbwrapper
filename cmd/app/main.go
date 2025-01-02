@@ -5,8 +5,6 @@ package main
 // TODO: include connection with Oracle
 // TODO: include connection with Mysql
 // TODO: include authentication using JWT
-// TODO: implement cli arguments
-// TODO: improve the readme with examples
 import (
 	"fmt"
 	"log"
@@ -48,9 +46,29 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func ReadUserIP(r *http.Request) string {
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress == "" {
+		IPAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if IPAddress == "" {
+		IPAddress = r.RemoteAddr
+	}
+	return IPAddress
+}
+
 func SetupRoutes(mux *http.ServeMux, app *pg.App) (http.Handler, error) {
-	mux.Handle("/", http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		fmt.Println("Root handler:", r.URL.Path)
+	// TODO: need to create some treatment on the path variable to understand how to do path handling without any framework
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.Log.Debug(fmt.Sprintf("Requested ping by %v", ReadUserIP(r)))
+
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte("I'm alive.\n"))
+
+		if err != nil {
+			app.Log.Error(fmt.Sprintf("Error trying to get server. %v", err))
+			panic(err)
+		}
 	}))
 
 	// process base request for postgresl
@@ -67,7 +85,6 @@ func SetupRoutes(mux *http.ServeMux, app *pg.App) (http.Handler, error) {
 	return corsMiddleware(mux), nil
 }
 
-// TODO: need to create some treatment on the path variable to understand how to do that without any framework
 func ServeApiNative(address string, port int, app *pg.App) {
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	mux := http.NewServeMux()
