@@ -21,12 +21,6 @@ import (
 
 const VERSION = "1.0.0"
 
-func exportNotes(cCtx *cli.Context) error {
-	fileExport := cCtx.String("output")
-	fmt.Println("Notes exported to file "+cCtx.String("output"), fileExport)
-	return nil
-}
-
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Set CORS headers
