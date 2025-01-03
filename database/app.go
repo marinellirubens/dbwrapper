@@ -101,9 +101,10 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	// treat the method
 	switch method := r.Method; method {
 	case http.MethodGet:
-		_ = r.URL.Query().Get("query")
-		dbId := r.Header.Get("dbname")
+		query := r.Header.Get("query")
+		dbId := r.Header.Get("database")
 		_, ok := app.DbHandlers[dbId]
+		app.Log.Debug(fmt.Sprintf("query: %v, database: %v", query, dbId))
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
 			if _, err := w.Write([]byte("Database not located")); err != nil {
