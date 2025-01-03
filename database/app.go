@@ -28,7 +28,7 @@ type App struct {
 	Log *logs.Logger
 }
 
-func (app *App) IncludeDbConnections() {
+func (app *App) SetupDbConnections() {
 	var db *sql.DB
 	for _, dbInfo := range app.DbHandlers {
 		switch handlerType := dbInfo.GetDbType(); handlerType {
@@ -39,8 +39,8 @@ func (app *App) IncludeDbConnections() {
 		default:
 			app.Log.Warning("Handler not setup")
 		}
-
-		app.DbConns[dbInfo.GetDbType()] = db
+		handlerType := dbInfo.GetDbId()
+		app.DbConns[handlerType] = db
 	}
 }
 func (app *App) IncludeDbConnection(db *sql.DB, handler reflect.Type, connection_string string) {
@@ -103,15 +103,27 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		query := r.Header.Get("query")
 		dbId := r.Header.Get("database")
-		_, ok := app.DbHandlers[dbId]
-		app.Log.Debug(fmt.Sprintf("query: %v, database: %v", query, dbId))
+		dbConnection, ok := app.DbConns[dbId]
+		//app.Log.Debug(fmt.Sprintf("app.Dbconns: %v, database: %v", app.DbConns, dbConnection))
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
 			if _, err := w.Write([]byte("Database not located")); err != nil {
 				app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 			}
 		}
-		//result, err = getQueryFromDatabase(query, handler.db, app)
+		result, err := getQueryFromDatabase(query, dbConnection, app)
+		if err != nil {
+			errMessage := fmt.Sprintf("Error processing request %v", err)
+			app.Log.Error(errMessage)
+			w.WriteHeader(http.StatusNotFound)
+			if _, err := w.Write([]byte(errMessage)); err != nil {
+				app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
+			}
+		}
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte(result)); err != nil {
+			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
+		}
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		if _, err := w.Write([]byte("Method not allowed")); err != nil {
@@ -268,25 +280,29 @@ func getQueryFromDatabase(query string, db *sql.DB, app *App) ([]byte, error) {
 	var err error
 
 	start := time.Now()
+	app.Log.Debug("Validating query")
 	err = validateQuery(query)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
 
+	app.Log.Debug("Checking db connection")
 	err = checkDbConnection(db)
 	if err != nil {
 		return nil, err
 	}
 
+	app.Log.Debug("processing rows")
 	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
 	rows, err := db.Query(query)
 	if err != nil {
-		return []byte(fmt.Sprintf("%v", err)), err
+		return nil, err
 	}
-
+	app.Log.Debug("processing rows")
 	cols, err := rows.Columns()
 	if err != nil {
-		panic(err)
+		app.Log.Error(fmt.Sprintf("Error processing rows %v", err))
+		return nil, err
 	}
 
 	allgeneric := make([]map[string]interface{}, 0)
@@ -308,7 +324,8 @@ func getQueryFromDatabase(query string, db *sql.DB, app *App) ([]byte, error) {
 
 	err2 := rows.Close()
 	if err2 != nil {
-		panic(err2)
+		app.Log.Error(fmt.Sprintf("Error processing rows %v", err))
+		return nil, err2
 	}
 
 	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))

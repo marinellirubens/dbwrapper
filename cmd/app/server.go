@@ -1,6 +1,7 @@
 package app
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -27,6 +28,7 @@ func ReadUserIP(r *http.Request) string {
 func ServeApiNative(address string, port int, app *database.App) {
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	mux := http.NewServeMux()
+	app.SetupDbConnections()
 
 	handler, err := SetupRoutes(mux, app)
 	if err != nil {
@@ -70,7 +72,7 @@ func RunServer(cfgPath string) {
 
 	host := cfgj.Server.Server_address
 	port := cfgj.Server.Server_port
-	application := &database.App{Log: logger, DbHandlers: map[string]database.DbConnection{}}
+	application := &database.App{Log: logger, DbHandlers: map[string]database.DbConnection{}, DbConns: make(map[string]*sql.DB)}
 
 	for _, v := range cfgj.Databases {
 		err = SetupAppDbs(v, application)

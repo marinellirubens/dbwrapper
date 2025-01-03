@@ -19,10 +19,13 @@ type DbConnection interface {
 	GetConnInfo() string
 	// Returns the db connection
 	GetDbType() string
+	// Returns the db name
+	GetDbId() string
 }
 
 // implements [DbConnection] interface
 type OracleConnectionInfo struct {
+	Id      string `json:"id"`
 	Server  string `json:"server"`
 	Port    int    `json:"port"`
 	User    string `json:"user"`
@@ -34,6 +37,10 @@ type OracleConnectionInfo struct {
 
 func (conn *OracleConnectionInfo) GetDbType() string {
 	return conn.Dbtype
+}
+
+func (conn *OracleConnectionInfo) GetDbId() string {
+	return conn.Id
 }
 
 // returns the connection string using the necessary format for the connection with the database
@@ -65,6 +72,7 @@ func (conn *OracleConnectionInfo) GetConnInfo() string {
 
 // implements [DbConnection] interface
 type PgConnectionInfo struct {
+	Id     string `json:"id"`
 	Host   string `json:"host"`
 	Port   int    `json:"port"`
 	User   string `json:"user"`
@@ -76,6 +84,10 @@ type PgConnectionInfo struct {
 
 func (conn *PgConnectionInfo) GetDbType() string {
 	return conn.Dbtype
+}
+
+func (conn *PgConnectionInfo) GetDbId() string {
+	return conn.Id
 }
 
 // returns the connection string using the necessary format for the connection with the database
@@ -110,6 +122,7 @@ var dbConnections map[string]DbConnection = map[string]DbConnection{}
 func SetOracleConnection(connInfo config.Database) OracleConnectionInfo {
 	// Add an OracleConnectionInfo
 	oracleConn := OracleConnectionInfo{
+		Id:       connInfo.Id,
 		Server:   connInfo.Host,
 		Port:     connInfo.Port,
 		User:     connInfo.User,
@@ -123,6 +136,7 @@ func SetOracleConnection(connInfo config.Database) OracleConnectionInfo {
 func SetPostgresConnection(connInfo config.Database) PgConnectionInfo {
 	// Add an OracleConnectionInfo
 	pgConn := PgConnectionInfo{
+		Id:       connInfo.Id,
 		Host:     connInfo.Host,
 		Port:     connInfo.Port,
 		User:     connInfo.User,

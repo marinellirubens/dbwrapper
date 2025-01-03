@@ -12,14 +12,5 @@
       "password": "mypassword",
       "dbname": "myusername",
       "dbtype": "postgres"
-    },
-    {
-      "dbid": "localdb2",
-      "host": "localhost",
-      "port": 5432,
-      "user": "myusername",
-      "password": "mypassword",
-      "dbname": "myusername",
-      "dbtype": "postgres"
     } ]
 }
