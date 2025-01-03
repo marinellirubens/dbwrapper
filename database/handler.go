@@ -14,28 +14,6 @@ type DatabaseHandler interface {
 	checkDbConnection() error
 }
 
-type PostgresHandler struct {
-	db                *sql.DB
-	connection_string string
-}
-
-type OracleHandler struct {
-	db                *sql.DB
-	connection_string string
-}
-
-type MongoHandler struct {
-	db                *sql.DB
-	connection_string string
-}
-
-func (handler PostgresHandler) checkDbConnection() error {
-	if err := handler.db.Ping(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func checkDbConnection(db *sql.DB) error {
 	if err := db.Ping(); err != nil {
 		return err

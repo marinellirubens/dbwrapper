@@ -17,10 +17,6 @@ const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
 // Application object to handle the endpoints and connection with database
 type App struct {
 	// database connection
-	Postgres PostgresHandler
-	Oracle   OracleHandler
-	Mongo    MongoHandler
-
 	DbHandlers map[string]DbConnection
 	DbConns    map[string]*sql.DB
 
@@ -156,62 +152,6 @@ func processDelete(command string, db *sql.DB, Log *logger.Logger) ([]byte, erro
 		return nil, err
 	}
 	return []byte("Success"), nil
-}
-
-// Requests information from the postgresql database that is connected
-//
-//	Validates if the method is GET, if the method is not GET, returns a StatusMethodNotAllowed response
-func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
-	var err error
-
-	start := time.Now()
-	err = validateQuery(query)
-	if err != nil {
-		return []byte(fmt.Sprintf("%v", err)), err
-	}
-
-	err = app.Postgres.checkDbConnection()
-	if err != nil {
-		return nil, err
-	}
-
-	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
-	rows, err := app.Postgres.db.Query(query)
-	if err != nil {
-		return []byte(fmt.Sprintf("%v", err)), err
-	}
-
-	cols, err := rows.Columns()
-	if err != nil {
-		return nil, err
-	}
-
-	allgeneric := make([]map[string]interface{}, 0)
-	colvals := make([]interface{}, len(cols))
-	for rows.Next() {
-		colassoc := make(map[string]interface{}, len(cols))
-		for i := range colvals {
-			colvals[i] = new(interface{})
-		}
-		if err := rows.Scan(colvals...); err != nil {
-			return nil, err
-		}
-
-		for i, col := range cols {
-			colassoc[col] = *colvals[i].(*interface{})
-		}
-		allgeneric = append(allgeneric, colassoc)
-	}
-
-	err2 := rows.Close()
-	if err2 != nil {
-		return nil, err2
-	}
-
-	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
-	js, _ := json.Marshal(allgeneric)
-
-	return js, nil
 }
 
 // Requests information from the database
