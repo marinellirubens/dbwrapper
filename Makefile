@@ -1,5 +1,7 @@
+VERSION=$(shell cat ./VERSION)
+
 build:
-	@go build -o ./bin/dbwrapper main.go
+	@go build -o ./bin/${VERSION}/dbwrapper main.go
 
 run: build
 	@echo "Running server using make run steps"
