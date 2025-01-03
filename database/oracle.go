@@ -8,7 +8,7 @@ import (
 	_ "github.com/sijms/go-ora/v2"
 )
 
-func GetOracleConnection(dbInfo OracleConnectionInfo) *sql.DB {
+func GetOracleConnection(dbInfo DbConnection) *sql.DB {
 	connectionString := dbInfo.GetConnString()
 
 	fmt.Println("Opening connection with oracle")
@@ -60,7 +60,7 @@ func sqlOperations(db *sql.DB) {
 }
 
 func TestConnection() {
-	var localDB = OracleConnectionInfo{
+	var localDB = &OracleConnectionInfo{
 		Service:  "LGBRTMST",
 		User:     "tms_if",
 		Server:   "136.166.34.123",

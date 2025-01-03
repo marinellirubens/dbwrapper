@@ -18,7 +18,7 @@ type DbConnection interface {
 	// Returns basic connection info to be printed or logged without sensitive info
 	GetConnInfo() string
 	// Returns the db connection
-	//GetDb() *sql.DB
+	GetDbType() string
 }
 
 // implements [DbConnection] interface
@@ -30,6 +30,10 @@ type OracleConnectionInfo struct {
 	Dbtype  string `json:"dbtype"`
 
 	password string
+}
+
+func (conn *OracleConnectionInfo) GetDbType() string {
+	return conn.Dbtype
 }
 
 // returns the connection string using the necessary format for the connection with the database
@@ -68,6 +72,10 @@ type PgConnectionInfo struct {
 	Dbtype string `json:"dbtype"`
 
 	password string
+}
+
+func (conn *PgConnectionInfo) GetDbType() string {
+	return conn.Dbtype
 }
 
 // returns the connection string using the necessary format for the connection with the database

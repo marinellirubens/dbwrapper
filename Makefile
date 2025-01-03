@@ -1,5 +1,5 @@
 build:
-	@go build -o ./bin/dbwrapper cmd/app/main.go
+	@go build -o ./bin/dbwrapper main.go
 
 run: build
 	@echo "Running server using make run steps"

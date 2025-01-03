@@ -31,11 +31,7 @@ type MongoHandler struct {
 
 func (handler PostgresHandler) checkDbConnection() error {
 	if err := handler.db.Ping(); err != nil {
-		db, err := ConnectToPsql(handler.connection_string)
-		if err != nil {
-			return err
-		}
-		handler.db = db
+		return err
 	}
 	return nil
 }

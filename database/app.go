@@ -17,15 +17,32 @@ const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
 // Application object to handle the endpoints and connection with database
 type App struct {
 	// database connection
-	Postgres   PostgresHandler
-	Oracle     OracleHandler
-	Mongo      MongoHandler
+	Postgres PostgresHandler
+	Oracle   OracleHandler
+	Mongo    MongoHandler
+
 	DbHandlers map[string]DbConnection
 	DbConns    map[string]*sql.DB
+
 	// logger object for general purposes
 	Log *logs.Logger
 }
 
+func (app *App) IncludeDbConnections() {
+	var db *sql.DB
+	for _, dbInfo := range app.DbHandlers {
+		switch handlerType := dbInfo.GetDbType(); handlerType {
+		case ORACLE:
+			db = GetOracleConnection(dbInfo)
+		case POSTGRES:
+			db, _ = GetPostgresConnection(dbInfo)
+		default:
+			app.Log.Warning("Handler not setup")
+		}
+
+		app.DbConns[dbInfo.GetDbType()] = db
+	}
+}
 func (app *App) IncludeDbConnection(db *sql.DB, handler reflect.Type, connection_string string) {
 	app.Log.Info(handler.String())
 
@@ -61,7 +78,10 @@ func (app *App) ProcessMongoRequest(w http.ResponseWriter, r *http.Request) {
 		app.Log.Warning("No Mongodb handler was setup")
 
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(nil))
+		if _, err := w.Write([]byte(nil)); err != nil {
+			app.Log.Error(fmt.Sprintf("Error trying to write buffer %v", err))
+		}
+
 		return
 	}
 }
@@ -72,41 +92,31 @@ func (app *App) ProcessPostgresRequestHandlePath(w http.ResponseWriter, r *http.
 	fmt.Printf("Path handler:/%s\n", strings.Trim(r.URL.Path, " "))
 	fmt.Println("Path handler:", r.URL.Query().Get("query"))
 	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte(METHOD_NOT_ALLOWED))
+	if _, err := w.Write([]byte(METHOD_NOT_ALLOWED)); err != nil {
+		app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
+	}
 }
 
 func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
-	// method to handle path variables
-	var status int
-	var result []byte
-	var err error
-
 	// treat the method
 	switch method := r.Method; method {
 	case http.MethodGet:
-		query := r.URL.Query().Get("query")
+		_ = r.URL.Query().Get("query")
 		dbId := r.Header.Get("dbname")
-		handler, ok := app.DbHandlers[dbId]
+		_, ok := app.DbHandlers[dbId]
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("Database not located"))
-			return
+			if _, err := w.Write([]byte("Database not located")); err != nil {
+				app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
+			}
 		}
-		result, err = getQueryFromDatabase(query, handler.db, app)
+		//result, err = getQueryFromDatabase(query, handler.db, app)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("Method not allowed"))
-		return
+		if _, err := w.Write([]byte("Method not allowed")); err != nil {
+			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
+		}
 	}
-
-	if err != nil {
-		status = http.StatusBadRequest
-	} else {
-		status = http.StatusOK
-	}
-
-	w.WriteHeader(status)
-	w.Write(result)
 }
 
 // process selects (GET), delete(DELETE) and update(PATCH)

@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"reflect"
 	"time"
 
 	"github.com/marinellirubens/dbwrapper/database"
@@ -50,11 +49,11 @@ func ServeApiNative(address string, port int, app *database.App) {
 }
 
 func RunServer(cfgPath string) {
-	cfg, err := config.GetInfoFile(cfgPath)
-	if err != nil {
-		log.Fatal("error processing configuration file")
-		os.Exit(1)
-	}
+	//cfg, err := config.GetInfoFile(cfgPath)
+	//if err != nil {
+	//log.Fatal("error processing configuration file")
+	//os.Exit(1)
+	//}
 	cfgj, err := config.GetJsonConfig("./test.json")
 	if err != nil {
 		log.Fatal("error processing configuration file")
@@ -71,24 +70,16 @@ func RunServer(cfgPath string) {
 
 	host := cfgj.Server.Server_address
 	port := cfgj.Server.Server_port
-
-	psqlInfom := database.GetConnectionInfo(cfg)
-	db, err := database.ConnectToPsql(psqlInfom)
-	if err != nil {
-		panic(err)
-	}
-	defer database.CloseConn(db)
-
-	if err := db.Ping(); err != nil {
-		panic(err)
-	}
 	application := &database.App{Log: logger, DbHandlers: map[string]database.DbConnection{}}
 
 	for _, v := range cfgj.Databases {
-		SetupAppDbs(v, application)
+		err = SetupAppDbs(v, application)
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	application.IncludeDbConnection(db, reflect.TypeOf(database.PostgresHandler{}), psqlInfom)
+	//application.IncludeDbConnection(db, reflect.TypeOf(database.PostgresHandler{}), psqlInfom)
 	ServeApiNative(host, port, application)
 }
 
