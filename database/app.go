@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"reflect"
-	"strings"
 	"time"
 
-	logs "github.com/marinellirubens/dbwrapper/internal/logger"
+	"github.com/marinellirubens/dbwrapper/internal/logger"
+	"github.com/marinellirubens/dbwrapper/internal/utils"
 )
 
+// message for http response
 const METHOD_NOT_ALLOWED = "command not allowed on this endpoint"
 
 // Application object to handle the endpoints and connection with database
@@ -25,7 +25,7 @@ type App struct {
 	DbConns    map[string]*sql.DB
 
 	// logger object for general purposes
-	Log *logs.Logger
+	Log *logger.Logger
 }
 
 func (app *App) SetupDbConnections() {
@@ -38,90 +38,59 @@ func (app *App) SetupDbConnections() {
 			db, _ = GetPostgresConnection(dbInfo)
 		default:
 			app.Log.Warning("Handler not setup")
+			return
 		}
+
 		handlerType := dbInfo.GetDbId()
 		app.DbConns[handlerType] = db
 	}
 }
-func (app *App) IncludeDbConnection(db *sql.DB, handler reflect.Type, connection_string string) {
-	app.Log.Info(handler.String())
 
-	switch handlerType := handler.String(); handlerType {
-	case "database.PostgresHandler":
-		app.Log.Debug("Including postgres handler")
-		app.Postgres = PostgresHandler{db: db, connection_string: connection_string}
-	case "database.OracleHandler":
-		app.Log.Debug("Including oracle handler")
-		app.Oracle = OracleHandler{db: db, connection_string: connection_string}
-	case "database.MongoHandler":
-		app.Log.Debug("Including mongo handler")
-		app.Mongo = MongoHandler{db: db, connection_string: connection_string}
-	default:
-		app.Log.Warning("Handler not setup")
-	}
-}
+func (app *App) GetDatabasesRequest(w http.ResponseWriter, r *http.Request) {
+	switch method := r.Method; method {
+	case http.MethodGet:
+		app.Log.Debug(fmt.Sprintf("Requested ping by %v", utils.ReadUserIP(r)))
+		app.Log.Debug(fmt.Sprintf("Headers %s", r.Header))
 
-// TODO: treat the path to use the second element as the name of the database
-func (app *App) ProcessOracleRequest(w http.ResponseWriter, r *http.Request) {
-	if app.Oracle.db == nil {
-		app.Log.Warning("No Oracle handler was setup")
-
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(nil))
-		return
-	}
-}
-
-// TODO: treat the path to use the second element as the name of the database
-func (app *App) ProcessMongoRequest(w http.ResponseWriter, r *http.Request) {
-	if app.Mongo.db == nil {
-		app.Log.Warning("No Mongodb handler was setup")
-
-		w.WriteHeader(http.StatusInternalServerError)
-		if _, err := w.Write([]byte(nil)); err != nil {
-			app.Log.Error(fmt.Sprintf("Error trying to write buffer %v", err))
+		w.WriteHeader(http.StatusOK)
+		jsonResponse, _ := json.Marshal(app.DbHandlers)
+		_, err := w.Write(jsonResponse)
+		if err != nil {
+			app.Log.Error(fmt.Sprintf("Error trying to get server. %v", err))
+			panic(err)
 		}
-
-		return
-	}
-}
-
-// process selects (GET), delete(DELETE) and update(PATCH)
-func (app *App) ProcessPostgresRequestHandlePath(w http.ResponseWriter, r *http.Request) {
-	// method to handle path variables
-	fmt.Printf("Path handler:/%s\n", strings.Trim(r.URL.Path, " "))
-	fmt.Println("Path handler:", r.URL.Query().Get("query"))
-	w.WriteHeader(http.StatusNotImplemented)
-	if _, err := w.Write([]byte(METHOD_NOT_ALLOWED)); err != nil {
-		app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
 	}
 }
 
 func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	// treat the method
+	var err error
+	var result []byte
+
+	query := r.Header.Get("query")
+	dbId := r.Header.Get("database")
+	dbConnection, ok := app.DbConns[dbId]
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		if _, err := w.Write([]byte("Database not located")); err != nil {
+			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
+		}
+	}
+
 	switch method := r.Method; method {
-	case http.MethodGet:
-		query := r.Header.Get("query")
-		dbId := r.Header.Get("database")
-		dbConnection, ok := app.DbConns[dbId]
-		//app.Log.Debug(fmt.Sprintf("app.Dbconns: %v, database: %v", app.DbConns, dbConnection))
-		if !ok {
-			w.WriteHeader(http.StatusNotFound)
-			if _, err := w.Write([]byte("Database not located")); err != nil {
-				app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
-			}
-		}
-		result, err := getQueryFromDatabase(query, dbConnection, app)
-		if err != nil {
-			errMessage := fmt.Sprintf("Error processing request %v", err)
-			app.Log.Error(errMessage)
-			w.WriteHeader(http.StatusNotFound)
-			if _, err := w.Write([]byte(errMessage)); err != nil {
-				app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
-			}
-		}
-		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write([]byte(result)); err != nil {
+
+	case http.MethodGet: // process query and return a json
+		result, err = getQueryFromDatabase(query, dbConnection, app)
+	case http.MethodDelete: // process deletes on the database
+		result, err = processDelete(query, dbConnection, app.Log)
+	case http.MethodPatch: // process updates on the database
+		result, err = processUpdate(query, dbConnection, app.Log)
+	case http.MethodPost: // process inserts on the database
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		if _, err := w.Write([]byte("Method not implemented yet")); err != nil {
 			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 		}
 	default:
@@ -130,67 +99,40 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 		}
 	}
-}
-
-// process selects (GET), delete(DELETE) and update(PATCH)
-func (app *App) ProcessPostgresRequest(w http.ResponseWriter, r *http.Request) {
-	// method to handle path variables
-	if app.Postgres.db == nil {
-		app.Log.Warning("No posgresql handler was setup")
-
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(nil))
-		return
-	}
-
-	var status int
-	var result []byte
-	var err error
-
-	// treat the method
-	switch method := r.Method; method {
-	case http.MethodGet:
-		query := r.URL.Query().Get("query")
-		result, err = app.getQueryFromPostgres(query)
-	case http.MethodDelete:
-		query := r.URL.Query().Get("query")
-		result, err = app.deleteFromPostgres(query)
-	case http.MethodPatch:
-		query := r.URL.Query().Get("query")
-		result, err = app.updatePostgres(query)
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("Method not allowed"))
-		return
-	}
 
 	if err != nil {
-		status = http.StatusBadRequest
-	} else {
-		status = http.StatusOK
+		errMessage := fmt.Sprintf("Error processing request %v", err)
+		app.Log.Error(errMessage)
+
+		w.WriteHeader(http.StatusNotFound)
+		if _, err := w.Write([]byte(errMessage)); err != nil {
+			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
+		}
 	}
 
-	w.WriteHeader(status)
-	w.Write(result)
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write([]byte(result)); err != nil {
+		app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
+	}
 }
 
 // processes the update on postgresql database
-func (app *App) updatePostgres(query string) ([]byte, error) {
+func processUpdate(command string, db *sql.DB, Log *logger.Logger) ([]byte, error) {
 	start := time.Now()
-	err := validateUpdate(query)
+	err := validateUpdate(command)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}
-	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
-	result, err := app.Postgres.db.Exec(query)
-	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
+	Log.Info(fmt.Sprintf("Command sent: `%s` processing...", command))
+	result, err := db.Exec(command)
+	Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
 	if err != nil {
-		app.Log.Error(fmt.Sprintf("%s", err))
+		Log.Error(fmt.Sprintf("%s", err))
 		return []byte(fmt.Sprintf("%v\n", err)), err
 	} else {
 		lastInsert, _ := result.LastInsertId()
 		rowsAfected, _ := result.RowsAffected()
-		app.Log.Debug(
+		Log.Debug(
 			fmt.Sprintf(
 				"Process result LastInsertId:%v RowsAffected: %v",
 				lastInsert, rowsAfected,
@@ -201,18 +143,17 @@ func (app *App) updatePostgres(query string) ([]byte, error) {
 	return []byte("Success"), nil
 }
 
-// process the delete process on postgresql database
-func (app *App) deleteFromPostgres(query string) ([]byte, error) {
+func processDelete(command string, db *sql.DB, Log *logger.Logger) ([]byte, error) {
 	start := time.Now()
-	err := validateDelete(query)
+	err := validateDelete(command)
 	if err != nil {
-		return []byte(fmt.Sprintf("%v", err)), err
+		return nil, err
 	}
-	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
-	_, err = app.Postgres.db.Exec(query)
-	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
+	Log.Info(fmt.Sprintf("Command sent: `%s` processing...", command))
+	_, err = db.Exec(command)
+	Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
 	if err != nil {
-		return []byte(fmt.Sprintf("%v", err)), err
+		return nil, err
 	}
 	return []byte("Success"), nil
 }
@@ -242,7 +183,7 @@ func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
 
 	cols, err := rows.Columns()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	allgeneric := make([]map[string]interface{}, 0)
@@ -253,7 +194,7 @@ func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
 			colvals[i] = new(interface{})
 		}
 		if err := rows.Scan(colvals...); err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		for i, col := range cols {
@@ -264,7 +205,7 @@ func (app *App) getQueryFromPostgres(query string) ([]byte, error) {
 
 	err2 := rows.Close()
 	if err2 != nil {
-		panic(err2)
+		return nil, err2
 	}
 
 	app.Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
@@ -292,13 +233,14 @@ func getQueryFromDatabase(query string, db *sql.DB, app *App) ([]byte, error) {
 		return nil, err
 	}
 
-	app.Log.Debug("processing rows")
+	app.Log.Debug("Processing query")
 	app.Log.Info(fmt.Sprintf("Query sent: `%s` processing...", query))
 	rows, err := db.Query(query)
 	if err != nil {
+		app.Log.Error(fmt.Sprintf("Error processing query %v", err))
 		return nil, err
 	}
-	app.Log.Debug("processing rows")
+	app.Log.Debug("Processing rows")
 	cols, err := rows.Columns()
 	if err != nil {
 		app.Log.Error(fmt.Sprintf("Error processing rows %v", err))
@@ -313,7 +255,8 @@ func getQueryFromDatabase(query string, db *sql.DB, app *App) ([]byte, error) {
 			colvals[i] = new(interface{})
 		}
 		if err := rows.Scan(colvals...); err != nil {
-			panic(err)
+			app.Log.Error(fmt.Sprintf("Error processing rows %v", err))
+			return nil, err
 		}
 
 		for i, col := range cols {

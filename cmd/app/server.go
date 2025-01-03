@@ -14,18 +14,7 @@ import (
 	logs "github.com/marinellirubens/dbwrapper/internal/logger"
 )
 
-func ReadUserIP(r *http.Request) string {
-	IPAddress := r.Header.Get("X-Real-Ip")
-	if IPAddress == "" {
-		IPAddress = r.Header.Get("X-Forwarded-For")
-	}
-	if IPAddress == "" {
-		IPAddress = r.RemoteAddr
-	}
-	return IPAddress
-}
-
-func ServeApiNative(address string, port int, app *database.App) {
+func ServeApiNative(address string, port int, app *database.App) error {
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	mux := http.NewServeMux()
 	app.SetupDbConnections()
@@ -48,6 +37,14 @@ func ServeApiNative(address string, port int, app *database.App) {
 	if err != nil && err != http.ErrServerClosed {
 		panic(fmt.Sprintf("http server error: %s", err))
 	}
+	return nil
+}
+
+func catch() { //catch or finally
+	if err := recover(); err != nil { //catch
+		fmt.Fprintf(os.Stderr, "Exception: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func RunServer(cfgPath string) {
@@ -56,6 +53,8 @@ func RunServer(cfgPath string) {
 	//log.Fatal("error processing configuration file")
 	//os.Exit(1)
 	//}
+	defer catch()
+
 	cfgj, err := config.GetJsonConfig("./test.json")
 	if err != nil {
 		log.Fatal("error processing configuration file")
@@ -82,7 +81,7 @@ func RunServer(cfgPath string) {
 	}
 
 	//application.IncludeDbConnection(db, reflect.TypeOf(database.PostgresHandler{}), psqlInfom)
-	ServeApiNative(host, port, application)
+	_ = ServeApiNative(host, port, application)
 }
 
 func SetupAppDbs(dbInfo config.Database, app *database.App) error {
