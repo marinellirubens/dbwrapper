@@ -5,10 +5,10 @@ build:
 
 run: build
 	@echo "Running server using make run steps"
-	@if [[ -f config.example.ini && ! -f config.ini ]]; then \
-		cp config.example.ini config.ini; \
+	@if [[ -f config.example.json && ! -f config.json ]]; then \
+		cp config.example.json config.json; \
 	fi
-	@./bin/dbwrapper -f config.ini
+	@./bin/dbwrapper -f config.json
 
 tests:
 	@go test -v $(shell go list ./...)

@@ -4,9 +4,9 @@ import (
 	"testing"
 )
 
-func Test_GetInfoFile(t *testing.T) {
+func Test_GetJsonConfig(t *testing.T) {
 	//fmt.Println(os.Getwd())
-	_, err := GetInfoFile("./examples/config.example.ini")
+	_, err := GetJsonConfig("./examples/config.example.json")
 	if err != nil {
 		t.Errorf("GetInfoFile - ERROR %v", err)
 	} else {
