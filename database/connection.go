@@ -71,6 +71,6 @@ func GetConnection(dbInfo DbConnection, log *logger.Logger) (*sql.DB, error) {
 		return db, err
 	}
 
-	log.Info("Successfully connected!")
+	log.Info(fmt.Sprintf("Successfully connected to %s!", dbInfo.GetDbId()))
 	return db, nil
 }
