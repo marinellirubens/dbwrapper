@@ -4,7 +4,7 @@
 * [Project Goals](#when-the-project-will-be-concluded)
 * [References](#references)
 
-
+<!--TODO: improve this readme file-->
 ## Project description
 
 Project to practice golang, the idea is to create an wrapper for database requests
