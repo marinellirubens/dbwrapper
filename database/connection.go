@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"github.com/marinellirubens/dbwrapper/internal/config"
 	"github.com/marinellirubens/dbwrapper/internal/logger"
@@ -34,6 +35,21 @@ func SetPostgresConnection(connInfo config.Database) PgConnectionInfo {
 		password: connInfo.Password,
 		Dbname:   connInfo.Dbname,
 		Dbtype:   POSTGRES,
+	}
+
+	return pgConn
+}
+
+func SetMysqlConnection(connInfo config.Database) MysqlConnectionInfo {
+	// Add an OracleConnectionInfo
+	pgConn := MysqlConnectionInfo{
+		Id:       connInfo.Id,
+		Host:     connInfo.Host,
+		Port:     connInfo.Port,
+		User:     connInfo.User,
+		password: connInfo.Password,
+		Dbname:   connInfo.Dbname,
+		Dbtype:   MYSQL,
 	}
 
 	return pgConn

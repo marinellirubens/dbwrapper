@@ -100,6 +100,11 @@ func SetupAppDbs(dbInfo config.Database, app *database.App) error {
 
 		app.DbHandlers[dbInfo.Id] = &db
 		return nil
+	case database.MYSQL:
+		db := database.SetMysqlConnection(dbInfo)
+
+		app.DbHandlers[dbInfo.Id] = &db
+		return nil
 	default:
 		return errors.New("Database type not found")
 	}

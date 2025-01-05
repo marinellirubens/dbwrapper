@@ -41,6 +41,12 @@ func (app *App) SetupDbConnections() error {
 				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
 				return err
 			}
+		case MYSQL:
+			db, err = GetConnection(dbInfo, app.Log)
+			if err != nil {
+				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
+				return err
+			}
 		default:
 			app.Log.Warning("Handler not setup")
 			return fmt.Errorf("Handler not setup")
@@ -98,11 +104,7 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPatch: // process updates on the database
 		result, err = processUpdate(query, dbConnection, app.Log)
 	case http.MethodPost: // process inserts on the database
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		if _, err := w.Write([]byte("Method not implemented yet\n")); err != nil {
-			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
-		}
-		return
+		result, err = processInsert(query, dbConnection, app.Log)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		if _, err := w.Write([]byte("Method not allowed\n")); err != nil {
@@ -128,10 +130,37 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// processes the update on postgresql database
+// processes the update on database
 func processUpdate(command string, db *sql.DB, Log *logger.Logger) ([]byte, error) {
 	start := time.Now()
 	err := validateUpdate(command)
+	if err != nil {
+		return []byte(fmt.Sprintf("%v", err)), err
+	}
+	Log.Info(fmt.Sprintf("Command sent: `%s` processing...", command))
+	result, err := db.Exec(command)
+	Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
+	if err != nil {
+		Log.Error(fmt.Sprintf("%s", err))
+		return []byte(fmt.Sprintf("%v\n", err)), err
+	} else {
+		lastInsert, _ := result.LastInsertId()
+		rowsAfected, _ := result.RowsAffected()
+		Log.Debug(
+			fmt.Sprintf(
+				"Process result LastInsertId:%v RowsAffected: %v",
+				lastInsert, rowsAfected,
+			),
+		)
+	}
+
+	return []byte("Success"), nil
+}
+
+// processes the update on database
+func processInsert(command string, db *sql.DB, Log *logger.Logger) ([]byte, error) {
+	start := time.Now()
+	err := validateInsert(command)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}

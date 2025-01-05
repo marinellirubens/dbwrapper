@@ -7,6 +7,7 @@ import (
 const (
 	ORACLE   = "oracle"
 	POSTGRES = "postgres"
+	MYSQL    = "mysql"
 )
 
 type DbConnection interface {
@@ -112,4 +113,51 @@ func (conn *PgConnectionInfo) GetConnInfo() string {
 	)
 
 	return plsqlInfo
+}
+
+// implements [DbConnection] interface
+type MysqlConnectionInfo struct {
+	Id     string `json:"id"`
+	Host   string `json:"host"`
+	Port   int    `json:"port"`
+	User   string `json:"user"`
+	Dbname string `json:"dbname"`
+	Dbtype string `json:"dbtype"`
+
+	password string
+}
+
+func (conn *MysqlConnectionInfo) GetDbType() string {
+	return conn.Dbtype
+}
+
+func (conn *MysqlConnectionInfo) GetDbId() string {
+	return conn.Id
+}
+
+// returns the connection string using the necessary format for the connection with the database
+func (conn *MysqlConnectionInfo) GetConnString() string {
+	connectionString := fmt.Sprintf(
+		"%s:%s@tcp(%s:%d)/%s",
+		conn.User,
+		conn.password,
+		conn.Host,
+		conn.Port,
+		conn.Dbname,
+	)
+
+	return connectionString
+}
+
+// Returns basic connection info to be printed or logged without sensitive info
+func (conn *MysqlConnectionInfo) GetConnInfo() string {
+	connectionString := fmt.Sprintf(
+		"%s@tcp(%s:%d)/%s",
+		conn.User,
+		conn.Host,
+		conn.Port,
+		conn.Dbname,
+	)
+
+	return connectionString
 }
