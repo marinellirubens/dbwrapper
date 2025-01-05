@@ -19,7 +19,7 @@ func GetPostgresConnection(psqlInfo DbConnection, log *logger.Logger) (*sql.DB, 
 
 	err = db.Ping()
 	if err != nil {
-		log.Error(fmt.Sprintf("Error: Could not establish a connection with the portgres database", err.Error()))
+		log.Error(fmt.Sprintf("Error: Could not establish a connection with the portgres database %s", err.Error()))
 		return db, err
 	}
 
