@@ -17,11 +17,16 @@ import (
 func ServeApiNative(address string, port int, app *database.App) error {
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	mux := http.NewServeMux()
-	app.SetupDbConnections()
+	err := app.SetupDbConnections()
+	if err != nil {
+		app.Log.Fatal("Error connecting to databases")
+		return err
+	}
 
 	handler, err := SetupRoutes(mux, app)
 	if err != nil {
-		panic("Error setting up the routes")
+		app.Log.Fatal("Error setting up the routes")
+		return err
 	}
 
 	server := &http.Server{
@@ -35,7 +40,8 @@ func ServeApiNative(address string, port int, app *database.App) error {
 
 	err = server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
-		panic(fmt.Sprintf("http server error: %s", err))
+		app.Log.Fatal(fmt.Sprintf("http server error: %s", err))
+		return err
 	}
 	return nil
 }
@@ -48,23 +54,20 @@ func catch() { //catch or finally
 }
 
 func RunServer(cfgPath string) {
-	//cfg, err := config.GetInfoFile(cfgPath)
-	//if err != nil {
-	//log.Fatal("error processing configuration file")
-	//os.Exit(1)
-	//}
 	defer catch()
 
-	cfgj, err := config.GetJsonConfig("./test.json")
+	cfgj, err := config.GetJsonConfig(cfgPath)
 	if err != nil {
 		log.Fatal("error processing configuration file")
 		os.Exit(1)
 	}
+
 	logger, err := logs.CreateLogger(
 		cfgj.Server.Logger_file,
 		logs.DEBUG,
 		[]uint16{logs.STREAM_WRITER, logs.FILE_WRITER},
 	)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,11 +79,11 @@ func RunServer(cfgPath string) {
 	for _, v := range cfgj.Databases {
 		err = SetupAppDbs(v, application)
 		if err != nil {
+			application.Log.Error("Error setting up databases")
 			panic(err)
 		}
 	}
 
-	//application.IncludeDbConnection(db, reflect.TypeOf(database.PostgresHandler{}), psqlInfom)
 	_ = ServeApiNative(host, port, application)
 }
 

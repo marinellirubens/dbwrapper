@@ -4,20 +4,25 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/marinellirubens/dbwrapper/internal/logger"
 	_ "github.com/sijms/go-ora/v2"
 )
 
-func GetOracleConnection(dbInfo DbConnection) *sql.DB {
-	connectionString := dbInfo.GetConnString()
+func GetOracleConnection(dbInfo DbConnection, log *logger.Logger) (*sql.DB, error) {
+	log.Debug("Opening connection with oracle")
 
-	fmt.Println("Opening connection with oracle")
-	db, err := sql.Open("oracle", connectionString)
+	db, err := sql.Open("oracle", dbInfo.GetConnString())
 	if err != nil {
-		panic(fmt.Errorf("error in sql.Open: %w", err))
+		log.Error(fmt.Sprintf("Error connecting to oracle %v\n", err))
+		return db, err
 	}
+
 	err = db.Ping()
 	if err != nil {
-		panic(fmt.Errorf("error pinging db: %w", err))
+		log.Error(fmt.Sprintf("Error: Could not establish a connection with the oracle database %s", err.Error()))
+		return db, err
 	}
-	return db
+
+	log.Info("Successfully connected!")
+	return db, nil
 }

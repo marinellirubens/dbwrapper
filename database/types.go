@@ -1,10 +1,12 @@
 package database
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 
 	"github.com/marinellirubens/dbwrapper/internal/config"
+	"github.com/marinellirubens/dbwrapper/internal/logger"
 )
 
 const (
@@ -183,4 +185,23 @@ func SetMapping() string {
 	fmt.Printf("%s\n", js)
 
 	return ""
+}
+
+func GetConnection(dbInfo DbConnection, log *logger.Logger) (*sql.DB, error) {
+	log.Debug(fmt.Sprintf("Opening connection with %s", dbInfo.GetDbType()))
+
+	db, err := sql.Open(dbInfo.GetDbType(), dbInfo.GetConnString())
+	if err != nil {
+		log.Error(fmt.Sprintf("Error connecting to %s %v\n", dbInfo.GetDbType(), err))
+		return db, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		log.Error(fmt.Sprintf("Error: Could not establish a connection with %s database %s", dbInfo.GetDbType(), err.Error()))
+		return db, err
+	}
+
+	log.Info("Successfully connected!")
+	return db, nil
 }

@@ -2,24 +2,27 @@ package database
 
 import (
 	"database/sql"
-	"log"
+	"fmt"
 
 	_ "github.com/lib/pq"
+	"github.com/marinellirubens/dbwrapper/internal/logger"
 )
 
-func GetPostgresConnection(psqlInfo DbConnection) (*sql.DB, error) {
-	// return nil, nil
+func GetPostgresConnection(psqlInfo DbConnection, log *logger.Logger) (*sql.DB, error) {
+	log.Debug("Opening connection with oracle")
+
 	db, err := sql.Open("postgres", psqlInfo.GetConnString())
 	if err != nil {
+		log.Error(fmt.Sprintf("Error connecting to postgres %v\n", err))
 		return db, err
 	}
-	// defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
-		log.Println("Error: Could not establish a connection with the portgres database", err.Error())
+		log.Error(fmt.Sprintf("Error: Could not establish a connection with the portgres database", err.Error()))
 		return db, err
 	}
-	log.Println("Successfully connected!")
+
+	log.Info("Successfully connected!")
 	return db, nil
 }

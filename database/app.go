@@ -24,22 +24,32 @@ type App struct {
 	Log *logger.Logger
 }
 
-func (app *App) SetupDbConnections() {
+func (app *App) SetupDbConnections() error {
 	var db *sql.DB
+	var err error
 	for _, dbInfo := range app.DbHandlers {
 		switch handlerType := dbInfo.GetDbType(); handlerType {
 		case ORACLE:
-			db = GetOracleConnection(dbInfo)
+			db, err = GetConnection(dbInfo, app.Log)
+			if err != nil {
+				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
+				return err
+			}
 		case POSTGRES:
-			db, _ = GetPostgresConnection(dbInfo)
+			db, err = GetConnection(dbInfo, app.Log)
+			if err != nil {
+				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
+				return err
+			}
 		default:
 			app.Log.Warning("Handler not setup")
-			return
+			return fmt.Errorf("Handler not setup")
 		}
 
 		handlerType := dbInfo.GetDbId()
 		app.DbConns[handlerType] = db
 	}
+	return nil
 }
 
 func (app *App) GetDatabasesRequest(w http.ResponseWriter, r *http.Request) {
@@ -71,9 +81,10 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	dbConnection, ok := app.DbConns[dbId]
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
-		if _, err := w.Write([]byte("Database not located")); err != nil {
+		if _, err := w.Write([]byte("Database not located\n")); err != nil {
 			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 		}
+		return
 	}
 
 	switch method := r.Method; method {
@@ -86,14 +97,16 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 		result, err = processUpdate(query, dbConnection, app.Log)
 	case http.MethodPost: // process inserts on the database
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		if _, err := w.Write([]byte("Method not implemented yet")); err != nil {
+		if _, err := w.Write([]byte("Method not implemented yet\n")); err != nil {
 			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 		}
+		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		if _, err := w.Write([]byte("Method not allowed")); err != nil {
+		if _, err := w.Write([]byte("Method not allowed\n")); err != nil {
 			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 		}
+		return
 	}
 
 	if err != nil {
@@ -104,6 +117,7 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 		if _, err := w.Write([]byte(errMessage)); err != nil {
 			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 		}
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
