@@ -23,7 +23,7 @@ This section is just so a I can have the completion feeling and a goal to achiev
     - [x] oracle
     - [ ] mysql
 - [ ] JWT authentication
-- [ ] log rotation implemented
+- [ ] log rotation implemented (decided to use logrotate for that)
 - [x] cli implemented
 
 ## references
