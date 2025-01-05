@@ -62,12 +62,14 @@ func (app *App) GetDatabasesRequest(w http.ResponseWriter, r *http.Request) {
 		jsonResponse, _ := json.Marshal(app.DbHandlers)
 		_, err := w.Write(jsonResponse)
 		if err != nil {
-			app.Log.Error(fmt.Sprintf("Error trying to get server. %v", err))
-			panic(err)
+			app.Log.Error(fmt.Sprintf("Error trying to write response. %v", err))
 		}
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("Method not allowed"))
+		_, err := w.Write([]byte("Method not allowed"))
+		if err != nil {
+			app.Log.Error(fmt.Sprintf("Error trying to write response. %v", err))
+		}
 	}
 }
 
