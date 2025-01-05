@@ -1,6 +1,5 @@
 package main
 
-// TODO: include connection with Mysql
 // TODO: include authentication using JWT
 import (
 	"fmt"
