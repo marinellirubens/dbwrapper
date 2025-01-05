@@ -1,8 +1,5 @@
 package main
 
-// TODO: include connection with redis
-// TODO: include connection with mongodb
-// TODO: include connection with Oracle
 // TODO: include connection with Mysql
 // TODO: include authentication using JWT
 import (

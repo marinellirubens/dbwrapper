@@ -20,13 +20,11 @@ This section is just so a I can have the completion feeling and a goal to achiev
 
 - When I can do on databases (postgres, oracle, mysql, mongodb, redis) the "equivalent" operations for (select, update, delete, insert)
     - [x] postgres
-    - [ ] oracle
+    - [x] oracle
     - [ ] mysql
-    - [ ] mongodb
-    - [ ] redis
 - [ ] JWT authentication
 - [ ] log rotation implemented
-- [ ] cli implemented
+- [x] cli implemented
 
 ## references
 
