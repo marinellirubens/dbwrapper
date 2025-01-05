@@ -1,12 +1,7 @@
 package database
 
 import (
-	"database/sql"
-	"encoding/json"
 	"fmt"
-
-	"github.com/marinellirubens/dbwrapper/internal/config"
-	"github.com/marinellirubens/dbwrapper/internal/logger"
 )
 
 const (
@@ -117,91 +112,4 @@ func (conn *PgConnectionInfo) GetConnInfo() string {
 	)
 
 	return plsqlInfo
-}
-
-var dbConnections map[string]DbConnection = map[string]DbConnection{}
-
-func SetOracleConnection(connInfo config.Database) OracleConnectionInfo {
-	// Add an OracleConnectionInfo
-	oracleConn := OracleConnectionInfo{
-		Id:       connInfo.Id,
-		Server:   connInfo.Host,
-		Port:     connInfo.Port,
-		User:     connInfo.User,
-		password: connInfo.Password,
-		Service:  connInfo.Service,
-		Dbtype:   ORACLE,
-	}
-	return oracleConn
-}
-
-func SetPostgresConnection(connInfo config.Database) PgConnectionInfo {
-	// Add an OracleConnectionInfo
-	pgConn := PgConnectionInfo{
-		Id:       connInfo.Id,
-		Host:     connInfo.Host,
-		Port:     connInfo.Port,
-		User:     connInfo.User,
-		password: connInfo.Password,
-		Dbname:   connInfo.Dbname,
-		Dbtype:   POSTGRES,
-	}
-
-	return pgConn
-}
-
-func SetMapping() string {
-	// Add an OracleConnectionInfo
-	oracleConn := OracleConnectionInfo{
-		Server:   "oracle.example.com",
-		Port:     1521,
-		User:     "oracle_user",
-		password: "secure_password",
-		Service:  "ORCL",
-		Dbtype:   ORACLE,
-	}
-	dbConnections["orcl"] = &oracleConn
-
-	//fmt.Printf("%s\n", js)
-
-	// Add a PgConnectionInfo
-	pgConn := &PgConnectionInfo{
-		Host:     "postgres.example.com",
-		Port:     5432,
-		User:     "pg_user",
-		password: "secure_password",
-		Dbname:   "example_db",
-		Dbtype:   POSTGRES,
-	}
-	dbConnections["localdb"] = pgConn
-
-	//info := dbConnections["oracle"]
-	//fmt.Printf("printing connection %v", info.GetConnInfo())
-	js, err := json.MarshalIndent(dbConnections, "", "    ")
-	if err != nil {
-		fmt.Println("error")
-		panic(err)
-	}
-	fmt.Printf("%s\n", js)
-
-	return ""
-}
-
-func GetConnection(dbInfo DbConnection, log *logger.Logger) (*sql.DB, error) {
-	log.Debug(fmt.Sprintf("Opening connection with %s", dbInfo.GetDbType()))
-
-	db, err := sql.Open(dbInfo.GetDbType(), dbInfo.GetConnString())
-	if err != nil {
-		log.Error(fmt.Sprintf("Error connecting to %s %v\n", dbInfo.GetDbType(), err))
-		return db, err
-	}
-
-	err = db.Ping()
-	if err != nil {
-		log.Error(fmt.Sprintf("Error: Could not establish a connection with %s database %s", dbInfo.GetDbType(), err.Error()))
-		return db, err
-	}
-
-	log.Info("Successfully connected!")
-	return db, nil
 }
