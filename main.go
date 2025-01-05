@@ -40,7 +40,7 @@ func main() {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			fmt.Println("path: ", cfgPath)
+			//fmt.Println("path: ", cfgPath)
 			cmd.RunServer(cfgPath)
 			return nil
 		},

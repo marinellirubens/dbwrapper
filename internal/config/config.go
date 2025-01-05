@@ -44,6 +44,7 @@ func (s *ConfigJson) PrintInfo() {
 }
 
 func GetJsonConfig(filename string) (ConfigJson, error) {
+	fmt.Println("Reading configuration file", filename)
 	config := ConfigJson{}
 	configFile, err := os.Open(filename)
 	if err != nil {

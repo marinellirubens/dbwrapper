@@ -107,6 +107,13 @@ func RunServer(cfgPath string) {
 		logs.DEBUG,
 		[]uint16{logs.STREAM_WRITER, logs.FILE_WRITER},
 	)
+	logger.Debug(
+		fmt.Sprintf(
+			"Logger setup using config file %s logging into log file %s",
+			cfgPath,
+			cfgj.Server.Logger_file,
+		),
+	)
 
 	if err != nil {
 		log.Fatal(err)
@@ -128,7 +135,7 @@ func RunServer(cfgPath string) {
 }
 
 func SetupAppDbs(dbInfo config.Database, app *database.App) error {
-	fmt.Printf("Database: %v\n", dbInfo)
+	//fmt.Printf("Database: %v\n", dbInfo)
 	switch method := dbInfo.Dbtype; method {
 	case database.ORACLE:
 		db := database.SetOracleConnection(dbInfo)
