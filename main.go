@@ -1,9 +1,5 @@
 package main
 
-// TODO: include connection with redis
-// TODO: include connection with mongodb
-// TODO: include connection with Oracle
-// TODO: include connection with Mysql
 // TODO: include authentication using JWT
 import (
 	"fmt"
@@ -44,7 +40,7 @@ func main() {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			fmt.Println("path: ", cfgPath)
+			//fmt.Println("path: ", cfgPath)
 			cmd.RunServer(cfgPath)
 			return nil
 		},

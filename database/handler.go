@@ -23,7 +23,19 @@ func checkDbConnection(db *sql.DB) error {
 
 // Validate the update command to check for unallowed keywords
 func validateUpdate(query string) error {
-	words := []string{"delete", "truncate", "drop", "insert"}
+	words := []string{"delete", "truncate", "drop", "insert", "create "}
+	lowerQuery := strings.ToLower(query)
+	for _, key := range words {
+		if strings.Contains(lowerQuery, key) {
+			return errors.New(METHOD_NOT_ALLOWED)
+		}
+	}
+	return nil
+}
+
+// Validate the insert command to check for unallowed keywords
+func validateInsert(query string) error {
+	words := []string{"delete", "truncate", "drop", "update"}
 	lowerQuery := strings.ToLower(query)
 	for _, key := range words {
 		if strings.Contains(lowerQuery, key) {
@@ -35,7 +47,7 @@ func validateUpdate(query string) error {
 
 // Validate the delete command to check for unallowed keywords
 func validateDelete(query string) error {
-	words := []string{"update", "truncate", "drop", "insert"}
+	words := []string{"update", "truncate", "drop", "insert", "create "}
 	lowerQuery := strings.ToLower(query)
 	for _, key := range words {
 		if strings.Contains(lowerQuery, key) {
@@ -47,7 +59,7 @@ func validateDelete(query string) error {
 
 // Validate the query command to check for unallowed keywords
 func validateQuery(query string) error {
-	words := []string{"delete", "truncate", "drop", "update", "insert"}
+	words := []string{"delete", "truncate", "drop", "update", "insert", "create "}
 	lowerQuery := strings.ToLower(query)
 	for _, key := range words {
 		if strings.Contains(lowerQuery, key) {

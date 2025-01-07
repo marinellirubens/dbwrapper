@@ -1,15 +1,13 @@
 package database
 
 import (
-	"encoding/json"
 	"fmt"
-
-	"github.com/marinellirubens/dbwrapper/internal/config"
 )
 
 const (
 	ORACLE   = "oracle"
 	POSTGRES = "postgres"
+	MYSQL    = "mysql"
 )
 
 type DbConnection interface {
@@ -117,70 +115,49 @@ func (conn *PgConnectionInfo) GetConnInfo() string {
 	return plsqlInfo
 }
 
-var dbConnections map[string]DbConnection = map[string]DbConnection{}
+// implements [DbConnection] interface
+type MysqlConnectionInfo struct {
+	Id     string `json:"id"`
+	Host   string `json:"host"`
+	Port   int    `json:"port"`
+	User   string `json:"user"`
+	Dbname string `json:"dbname"`
+	Dbtype string `json:"dbtype"`
 
-func SetOracleConnection(connInfo config.Database) OracleConnectionInfo {
-	// Add an OracleConnectionInfo
-	oracleConn := OracleConnectionInfo{
-		Id:       connInfo.Id,
-		Server:   connInfo.Host,
-		Port:     connInfo.Port,
-		User:     connInfo.User,
-		password: connInfo.Password,
-		Service:  connInfo.Service,
-		Dbtype:   ORACLE,
-	}
-	return oracleConn
+	password string
 }
 
-func SetPostgresConnection(connInfo config.Database) PgConnectionInfo {
-	// Add an OracleConnectionInfo
-	pgConn := PgConnectionInfo{
-		Id:       connInfo.Id,
-		Host:     connInfo.Host,
-		Port:     connInfo.Port,
-		User:     connInfo.User,
-		password: connInfo.Password,
-		Dbname:   connInfo.Dbname,
-		Dbtype:   POSTGRES,
-	}
-
-	return pgConn
+func (conn *MysqlConnectionInfo) GetDbType() string {
+	return conn.Dbtype
 }
 
-func SetMapping() string {
-	// Add an OracleConnectionInfo
-	oracleConn := OracleConnectionInfo{
-		Server:   "oracle.example.com",
-		Port:     1521,
-		User:     "oracle_user",
-		password: "secure_password",
-		Service:  "ORCL",
-		Dbtype:   ORACLE,
-	}
-	dbConnections["orcl"] = &oracleConn
+func (conn *MysqlConnectionInfo) GetDbId() string {
+	return conn.Id
+}
 
-	//fmt.Printf("%s\n", js)
+// returns the connection string using the necessary format for the connection with the database
+func (conn *MysqlConnectionInfo) GetConnString() string {
+	connectionString := fmt.Sprintf(
+		"%s:%s@tcp(%s:%d)/%s",
+		conn.User,
+		conn.password,
+		conn.Host,
+		conn.Port,
+		conn.Dbname,
+	)
 
-	// Add a PgConnectionInfo
-	pgConn := &PgConnectionInfo{
-		Host:     "postgres.example.com",
-		Port:     5432,
-		User:     "pg_user",
-		password: "secure_password",
-		Dbname:   "example_db",
-		Dbtype:   POSTGRES,
-	}
-	dbConnections["localdb"] = pgConn
+	return connectionString
+}
 
-	//info := dbConnections["oracle"]
-	//fmt.Printf("printing connection %v", info.GetConnInfo())
-	js, err := json.MarshalIndent(dbConnections, "", "    ")
-	if err != nil {
-		fmt.Println("error")
-		panic(err)
-	}
-	fmt.Printf("%s\n", js)
+// Returns basic connection info to be printed or logged without sensitive info
+func (conn *MysqlConnectionInfo) GetConnInfo() string {
+	connectionString := fmt.Sprintf(
+		"%s@tcp(%s:%d)/%s",
+		conn.User,
+		conn.Host,
+		conn.Port,
+		conn.Dbname,
+	)
 
-	return ""
+	return connectionString
 }

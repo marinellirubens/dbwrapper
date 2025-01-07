@@ -24,22 +24,38 @@ type App struct {
 	Log *logger.Logger
 }
 
-func (app *App) SetupDbConnections() {
+func (app *App) SetupDbConnections() error {
 	var db *sql.DB
+	var err error
 	for _, dbInfo := range app.DbHandlers {
 		switch handlerType := dbInfo.GetDbType(); handlerType {
 		case ORACLE:
-			db = GetOracleConnection(dbInfo)
+			db, err = GetConnection(dbInfo, app.Log)
+			if err != nil {
+				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
+				return err
+			}
 		case POSTGRES:
-			db, _ = GetPostgresConnection(dbInfo)
+			db, err = GetConnection(dbInfo, app.Log)
+			if err != nil {
+				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
+				return err
+			}
+		case MYSQL:
+			db, err = GetConnection(dbInfo, app.Log)
+			if err != nil {
+				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
+				return err
+			}
 		default:
 			app.Log.Warning("Handler not setup")
-			return
+			return fmt.Errorf("Handler not setup")
 		}
 
 		handlerType := dbInfo.GetDbId()
 		app.DbConns[handlerType] = db
 	}
+	return nil
 }
 
 func (app *App) GetDatabasesRequest(w http.ResponseWriter, r *http.Request) {
@@ -52,12 +68,14 @@ func (app *App) GetDatabasesRequest(w http.ResponseWriter, r *http.Request) {
 		jsonResponse, _ := json.Marshal(app.DbHandlers)
 		_, err := w.Write(jsonResponse)
 		if err != nil {
-			app.Log.Error(fmt.Sprintf("Error trying to get server. %v", err))
-			panic(err)
+			app.Log.Error(fmt.Sprintf("Error trying to write response. %v", err))
 		}
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("Method not allowed"))
+		_, err := w.Write([]byte("Method not allowed"))
+		if err != nil {
+			app.Log.Error(fmt.Sprintf("Error trying to write response. %v", err))
+		}
 	}
 }
 
@@ -71,9 +89,10 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	dbConnection, ok := app.DbConns[dbId]
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
-		if _, err := w.Write([]byte("Database not located")); err != nil {
+		if _, err := w.Write([]byte("Database not located\n")); err != nil {
 			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 		}
+		return
 	}
 
 	switch method := r.Method; method {
@@ -85,15 +104,13 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPatch: // process updates on the database
 		result, err = processUpdate(query, dbConnection, app.Log)
 	case http.MethodPost: // process inserts on the database
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		if _, err := w.Write([]byte("Method not implemented yet")); err != nil {
-			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
-		}
+		result, err = processInsert(query, dbConnection, app.Log)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		if _, err := w.Write([]byte("Method not allowed")); err != nil {
+		if _, err := w.Write([]byte("Method not allowed\n")); err != nil {
 			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 		}
+		return
 	}
 
 	if err != nil {
@@ -104,6 +121,7 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 		if _, err := w.Write([]byte(errMessage)); err != nil {
 			app.Log.Error(fmt.Sprintf("Error writing to buffer %v", err))
 		}
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -112,10 +130,37 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// processes the update on postgresql database
+// processes the update on database
 func processUpdate(command string, db *sql.DB, Log *logger.Logger) ([]byte, error) {
 	start := time.Now()
 	err := validateUpdate(command)
+	if err != nil {
+		return []byte(fmt.Sprintf("%v", err)), err
+	}
+	Log.Info(fmt.Sprintf("Command sent: `%s` processing...", command))
+	result, err := db.Exec(command)
+	Log.Debug(fmt.Sprintf("Processed in %vus", time.Since(start).Microseconds()))
+	if err != nil {
+		Log.Error(fmt.Sprintf("%s", err))
+		return []byte(fmt.Sprintf("%v\n", err)), err
+	} else {
+		lastInsert, _ := result.LastInsertId()
+		rowsAfected, _ := result.RowsAffected()
+		Log.Debug(
+			fmt.Sprintf(
+				"Process result LastInsertId:%v RowsAffected: %v",
+				lastInsert, rowsAfected,
+			),
+		)
+	}
+
+	return []byte("Success"), nil
+}
+
+// processes the update on database
+func processInsert(command string, db *sql.DB, Log *logger.Logger) ([]byte, error) {
+	start := time.Now()
+	err := validateInsert(command)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", err)), err
 	}

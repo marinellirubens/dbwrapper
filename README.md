@@ -4,7 +4,7 @@
 * [Project Goals](#when-the-project-will-be-concluded)
 * [References](#references)
 
-
+<!--TODO: improve this readme file-->
 ## Project description
 
 Project to practice golang, the idea is to create an wrapper for database requests
@@ -20,13 +20,11 @@ This section is just so a I can have the completion feeling and a goal to achiev
 
 - When I can do on databases (postgres, oracle, mysql, mongodb, redis) the "equivalent" operations for (select, update, delete, insert)
     - [x] postgres
-    - [ ] oracle
-    - [ ] mysql
-    - [ ] mongodb
-    - [ ] redis
+    - [x] oracle
+    - [x] mysql
 - [ ] JWT authentication
-- [ ] log rotation implemented
-- [ ] cli implemented
+- [ ] log rotation implemented (decided to use logrotate for that)
+- [x] cli implemented
 
 ## references
 

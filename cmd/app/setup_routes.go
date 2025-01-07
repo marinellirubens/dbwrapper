@@ -28,7 +28,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 }
 
 func SetupRoutes(mux *http.ServeMux, app *database.App) (http.Handler, error) {
-	// TODO: need to create some treatment on the path variable to understand how to do path handling without any framework
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		app.Log.Debug(fmt.Sprintf("Requested ping by %v", utils.ReadUserIP(r)))
 		app.Log.Debug(fmt.Sprintf("Headers %s", r.Header))
