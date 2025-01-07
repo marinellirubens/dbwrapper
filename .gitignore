@@ -1,4 +1,4 @@
 *.log
 ./bin/dbwrapper
 config.ini
-./test.json
+test.json
