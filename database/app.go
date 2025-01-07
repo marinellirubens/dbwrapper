@@ -24,38 +24,55 @@ type App struct {
 	Log *logger.Logger
 }
 
-func (app *App) SetupDbConnections() error {
+func (app *App) SetupDbConnections() []error {
 	var db *sql.DB
 	var err error
+	var errArr []error
+	var setupHandle bool = true
+
 	for _, dbInfo := range app.DbHandlers {
+		setupHandle = true
+
 		switch handlerType := dbInfo.GetDbType(); handlerType {
 		case ORACLE:
 			db, err = GetConnection(dbInfo, app.Log)
 			if err != nil {
 				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
-				return err
+				errArr = append(errArr, err)
+				setupHandle = false
 			}
 		case POSTGRES:
 			db, err = GetConnection(dbInfo, app.Log)
 			if err != nil {
 				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
-				return err
+				errArr = append(errArr, err)
+				setupHandle = false
 			}
 		case MYSQL:
 			db, err = GetConnection(dbInfo, app.Log)
 			if err != nil {
 				app.Log.Error(fmt.Sprintf("Error connecting to db %v\n", err))
-				return err
+				errArr = append(errArr, err)
+				setupHandle = false
 			}
 		default:
-			app.Log.Warning("Handler not setup")
-			return fmt.Errorf("Handler not setup")
+			app.Log.Warning(fmt.Sprintf("Handler not setup %s", handlerType))
+			errArr = append(errArr, fmt.Errorf("Handler not setup"))
+			setupHandle = false
 		}
 
 		handlerType := dbInfo.GetDbId()
-		app.DbConns[handlerType] = db
+		if setupHandle == true {
+			app.DbConns[handlerType] = db
+			app.Log.Info(fmt.Sprintf("Setando handler %s", handlerType))
+		} else {
+			delete(app.DbHandlers, handlerType)
+			app.Log.Warning(fmt.Sprintf("Deletando handler %s", handlerType))
+		}
 	}
-	return nil
+	handlers, _ := json.Marshal(app.DbHandlers)
+	app.Log.Warning(fmt.Sprintf("Database Handlers %s", handlers))
+	return errArr
 }
 
 func (app *App) GetDatabasesRequest(w http.ResponseWriter, r *http.Request) {

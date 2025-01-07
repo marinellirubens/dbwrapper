@@ -21,10 +21,9 @@ func ServeApiNative(address string, port int, app *database.App) error {
 
 	server_path := fmt.Sprintf("%v:%v", address, port)
 	mux := http.NewServeMux()
-	err := app.SetupDbConnections()
-	if err != nil {
+	errArr := app.SetupDbConnections()
+	if errArr != nil {
 		app.Log.Fatal("Error connecting to databases")
-		return err
 	}
 
 	handler, err := SetupRoutes(mux, app)
