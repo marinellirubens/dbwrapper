@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 )
 
 // log level
@@ -37,7 +38,15 @@ const (
 )
 
 var (
-	levelTxt map[uint8]string = map[uint8]string{
+	TxtLevel map[string]uint8 = map[string]uint8{
+		"NONE":    uint8(0),
+		"DEBUG":   uint8(10),
+		"INFO":    uint8(20),
+		"WARNING": uint8(30),
+		"ERROR":   uint8(40),
+		"FATAL":   uint8(50),
+	}
+	LevelTxt map[uint8]string = map[uint8]string{
 		uint8(0):  "NONE",
 		uint8(10): "DEBUG",
 		uint8(20): "INFO",
@@ -46,7 +55,7 @@ var (
 		uint8(50): "FATAL",
 	}
 
-	levelTxtWithColor map[uint8]string = map[uint8]string{
+	LevelTxtWithColor map[uint8]string = map[uint8]string{
 		uint8(0):  "NONE",
 		uint8(10): green + "DEBUG" + reset,
 		uint8(20): blue + "INFO" + reset,
@@ -71,9 +80,9 @@ type Logger struct {
 func levelToText(logLevel uint8, withColor bool) string {
 	var ret string
 	if withColor {
-		ret = fmt.Sprint(levelTxtWithColor[logLevel])
+		ret = fmt.Sprint(LevelTxtWithColor[logLevel])
 	} else {
-		ret = fmt.Sprint(levelTxt[logLevel])
+		ret = fmt.Sprint(LevelTxt[logLevel])
 	}
 	return ret
 }
@@ -141,11 +150,19 @@ func (l *Logger) Fatal(message string) {
 // example:
 //
 //	logger, err := CreateLogger("server.log", logger.DEBUG, logger.STREAM_WRITER)
-func CreateLogger(logFile string, logLevel uint8, logTypes []uint16) (*Logger, error) {
+func CreateLogger[logType uint8 | string](logFile string, logLevel logType, logTypes []uint16) (*Logger, error) {
 	flags := log.Ldate | log.Ltime
 
-	var output *os.File
 	var err error
+	var level uint8
+
+	num, errv := strconv.Atoi(string(logLevel))
+	if errv != nil {
+		level = uint8(num)
+	} else {
+		level, _ = TxtLevel[string(logLevel)]
+	}
+	var output *os.File
 	var handlers []*Handler
 	var internalLogger *log.Logger
 
@@ -165,7 +182,7 @@ func CreateLogger(logFile string, logLevel uint8, logTypes []uint16) (*Logger, e
 		internalLogger = log.New(output, "", flags)
 		handler := &Handler{
 			logger:   internalLogger,
-			logLevel: logLevel,
+			logLevel: level,
 			logType:  logType,
 		}
 		handlers = append(handlers, handler)

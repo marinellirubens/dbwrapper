@@ -103,7 +103,7 @@ func RunServer(cfgPath string) {
 
 	logger, err := logs.CreateLogger(
 		cfgj.Server.Logger_file,
-		logs.DEBUG,
+		cfgj.Server.LogLevel,
 		[]uint16{logs.STREAM_WRITER, logs.FILE_WRITER},
 	)
 	logger.Debug(

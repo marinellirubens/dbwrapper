@@ -25,6 +25,7 @@ type ConfigJson struct {
 	Server struct {
 		Server_port    int    `json:"server_port"`
 		Server_address string `json:"server_address"`
+		LogLevel       string `json:"loglevel"`
 		Logger_file    string `json:"logger_file"`
 	} `json:"server"`
 	Databases []Database `json:"databases"`
