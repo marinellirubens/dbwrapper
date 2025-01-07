@@ -53,7 +53,8 @@ There is an example for the configuration on the file [config.example.json](inte
     "server_address": "",
     "logger_file": "/tmp/server.log"
   },
-    "Databases": [{
+  "Databases": [
+    {
       "dbid": "localdb",
       "host": "localhost",
       "port": 5432,
@@ -61,7 +62,8 @@ There is an example for the configuration on the file [config.example.json](inte
       "password": "mypassword",
       "dbname": "myusername",
       "dbtype": "postgres"
-    } ]
+    }
+  ]
 }
 ```
 You can use this file on the same folder you are executing the service, or specify the path using the parameter -f
