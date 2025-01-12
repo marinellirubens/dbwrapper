@@ -1,9 +1,8 @@
-
 {
   "Server": {
     "server_port": 8080,
     "server_address": "",
-    "logger_file": "/tmp/server.log",
+    "logger_file": "/var/log/dbwrapper/server.log",
     "loglevel": "INFO",
     "apikeys": [
       {

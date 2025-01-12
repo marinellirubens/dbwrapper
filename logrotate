@@ -1,0 +1,7 @@
+/var/log/dbwrapper/*.log {
+    daily
+    rotate 7
+    missingok
+    notifempty
+    create 0640 root root
+}

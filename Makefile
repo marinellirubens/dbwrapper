@@ -1,5 +1,8 @@
 VERSION=$(shell cat ./VERSION)
 
+logbuild:
+	@cp logrotate /etc/logrotate.d/dbwrapper
+
 build:
 	@go build -o ./bin/${VERSION}/dbwrapper main.go
 
