@@ -1,4 +1,4 @@
-/tmp/server*.log {
+/var/log/dbwrapper/*.log {
     daily
     rotate 7
     compress
