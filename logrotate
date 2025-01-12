@@ -1,7 +1,12 @@
-/var/log/dbwrapper/*.log {
+/tmp/server*.log {
     daily
     rotate 7
+    compress
     missingok
     notifempty
     create 0640 root root
+    sharedscripts
+    postrotate
+        docker restart dbwrapper > /dev/null 2>&1 || true
+    endscript
 }
