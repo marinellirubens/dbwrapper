@@ -8,6 +8,55 @@ import (
 	"github.com/marinellirubens/dbwrapper/internal/utils"
 )
 
+func basicAuthMiddleware(next http.Handler, app *database.App) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		apiKey := r.Header.Get("X-API-KEY")
+		if apiKey == "" {
+			http.Error(w, "API key is required", http.StatusUnauthorized)
+			return
+		}
+
+		dbId := r.Header.Get("database")
+		if dbId == "" {
+			http.Error(w, "Database must be informed", http.StatusUnauthorized)
+			return
+		}
+
+		// Retrieve the list of valid API keys from the configuration
+		validApiKeys := app.Config.ApiKeys
+		isValidKey := false
+		for _, key := range validApiKeys {
+			if apiKey == key.Key {
+				for _, dbName := range key.AllowedDbs {
+					if dbId == dbName {
+						isValidKey = true
+						break
+					}
+				}
+
+				if isValidKey {
+					break
+				} else {
+					http.Error(w, "Database not allowed for this key", http.StatusUnauthorized)
+					return
+				}
+			}
+		}
+
+		if !isValidKey {
+			http.Error(w, "Invalid API key", http.StatusUnauthorized)
+			return
+		}
+
+		_, ok := app.DbConns[dbId]
+		if !ok {
+			http.Error(w, "Database not located", http.StatusNotFound)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Set CORS headers
@@ -41,8 +90,8 @@ func SetupRoutes(mux *http.ServeMux, app *database.App) (http.Handler, error) {
 		}
 	}))
 
-	mux.HandleFunc("/databases", app.GetDatabasesRequest)
-	mux.HandleFunc("/database", app.ProcessGenericRequest)
+	mux.Handle("/databases", http.HandlerFunc(app.GetDatabasesRequest))
+	mux.Handle("/database", basicAuthMiddleware(http.HandlerFunc(app.ProcessGenericRequest), app))
 
 	return corsMiddleware(mux), nil
 }

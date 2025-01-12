@@ -3,7 +3,18 @@
   "Server": {
     "server_port": 8080,
     "server_address": "",
-    "logger_file": "/tmp/server.log"
+    "logger_file": "/tmp/server.log",
+    "loglevel": "INFO",
+    "apikeys": [
+      {
+        "key": "d36be84a-7c9f-428f-bc65-c095baddeeda",
+        "allowedDbs": ["localdb"]
+      },
+      {
+        "key": "b4c229fe-9acc-41e1-87cf-52e2c3d93f60",
+        "allowedDbs": ["localdb"]
+      }
+    ]
   },
     "Databases": [{
       "dbid": "localdb",

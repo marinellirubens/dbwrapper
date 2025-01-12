@@ -120,7 +120,12 @@ func RunServer(cfgPath string) {
 
 	host := cfgj.Server.Server_address
 	port := cfgj.Server.Server_port
-	application := &database.App{Log: logger, DbHandlers: map[string]database.DbConnection{}, DbConns: make(map[string]*sql.DB)}
+	application := &database.App{
+		Log:        logger,
+		DbHandlers: map[string]database.DbConnection{},
+		DbConns:    make(map[string]*sql.DB),
+		Config:     &cfgj.Server,
+	}
 
 	for _, v := range cfgj.Databases {
 		err = SetupAppDbs(v, application)

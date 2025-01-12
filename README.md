@@ -20,7 +20,7 @@ This section is just so a I can have the completion feeling and a goal to achiev
     - [x] postgres
     - [x] oracle
     - [x] mysql
-- [ ] JWT authentication
+- [x] key authentication
 - [ ] log rotation implemented (decided to use logrotate for that)
 - [x] cli implemented
 

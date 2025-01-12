@@ -21,14 +21,22 @@ type Database struct {
 	Password string `json:"password"`
 }
 
+type ApiKey struct {
+	Key        string   `json:"key"`
+	AllowedDbs []string `json:"allowedDbs"`
+}
+
+type ServerConfig struct {
+	Server_port    int      `json:"server_port"`
+	Server_address string   `json:"server_address"`
+	Logger_file    string   `json:"logger_file"`
+	LogLevel       string   `json:"loglevel"`
+	ApiKeys        []ApiKey `json:"apikeys"`
+}
+
 type ConfigJson struct {
-	Server struct {
-		Server_port    int    `json:"server_port"`
-		Server_address string `json:"server_address"`
-		LogLevel       string `json:"loglevel"`
-		Logger_file    string `json:"logger_file"`
-	} `json:"server"`
-	Databases []Database `json:"databases"`
+	Server    ServerConfig `json:"server"`
+	Databases []Database   `json:"databases"`
 }
 
 func (s *ConfigJson) PrintInfo() {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/marinellirubens/dbwrapper/internal/config"
 	"github.com/marinellirubens/dbwrapper/internal/logger"
 	"github.com/marinellirubens/dbwrapper/internal/utils"
 )
@@ -19,6 +20,7 @@ type App struct {
 	// database connection
 	DbHandlers map[string]DbConnection
 	DbConns    map[string]*sql.DB
+	Config     *config.ServerConfig
 
 	// logger object for general purposes
 	Log *logger.Logger
@@ -100,6 +102,7 @@ func (app *App) ProcessGenericRequest(w http.ResponseWriter, r *http.Request) {
 	// treat the method
 	var err error
 	var result []byte
+	app.Log.Info("Starting request")
 
 	query := r.Header.Get("query")
 	dbId := r.Header.Get("database")
