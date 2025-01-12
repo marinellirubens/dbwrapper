@@ -52,19 +52,28 @@ There is an example for the configuration on the file [config.example.json](inte
   "Server": {
     "server_port": 8080,
     "server_address": "",
-    "logger_file": "/tmp/server.log"
+    "logger_file": "/tmp/dbwrapper/server.log",
+    "loglevel": "INFO",
+    "apikeys": [
+      {
+        "key": "key1",
+        "allowedDbs": ["localdb"]
+      },
+      {
+        "key": "key2",
+        "allowedDbs": ["localdb"]
+      }
+    ]
   },
-  "Databases": [
-    {
-      "dbid": "localdb",
-      "host": "localhost",
-      "port": 5432,
-      "user": "myusername",
-      "password": "mypassword",
-      "dbname": "myusername",
-      "dbtype": "postgres"
-    }
-  ]
+  "Databases": [{
+    "dbid": "localdb",
+    "host": "postgresql",
+    "port": 5432,
+    "user": "myusername",
+    "password": "mypassword",
+    "dbname": "myusername",
+    "dbtype": "postgres"
+  }]
 }
 ```
 You can use this file on the same folder you are executing the service, or specify the path using the parameter -f
