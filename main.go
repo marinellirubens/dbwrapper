@@ -1,6 +1,5 @@
 package main
 
-// TODO: include authentication using JWT
 import (
 	"fmt"
 	"log"
