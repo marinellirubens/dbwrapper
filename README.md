@@ -23,7 +23,7 @@ This section is just so a I can have the completion feeling and a goal to achiev
 - [x] key authentication
 - [x] log rotation implemented (decided to use logrotate for that)
 - [x] cli implemented
-- [ ] deployment method example (if docker, create docker file, if service create dbwrapper.service)
+- [x] deployment method example (if docker, create docker file, if service create dbwrapper.service)
 
 ## Build project
 
