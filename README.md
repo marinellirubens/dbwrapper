@@ -42,6 +42,15 @@ $ ls ./bin/1.0.0
 dbwrapper
 ```
 
+## Build container
+
+To compilate and build the container running the api, please execute the following command
+```shell
+$ make create_container
+```
+This will build the binary, copy the config.example.json to local folder and build the image and create a container with the binary running.
+
+
 ## Configuration
 
 This service uses a json file for the configuration related to the database connections and also for the server port/ip and logging file
