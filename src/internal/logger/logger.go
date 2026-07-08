@@ -90,15 +90,21 @@ func levelToText(logLevel uint8, withColor bool) string {
 // generic log method
 func (l *Handler) log(message string, logLevel uint8) {
 	var withColor bool
+	var textToPrint string
+
 	if l.logType == StreamWriter {
 		withColor = true
 	}
 	level := levelToText(logLevel, withColor)
-	text_to_print := fmt.Sprintf("[%s] - %s%s", level, message, reset)
-	l.logger.Println(text_to_print)
+	if withColor {
+		textToPrint = fmt.Sprintf("[%s] - %s%s", level, message, reset)
+	} else {
+		textToPrint = fmt.Sprintf("[%s] - %s", level, message)
+	}
+	l.logger.Println(textToPrint)
 }
 
-// logs message using level Info
+// Info ... logs message using level Info
 func (l *Logger) Info(message string) {
 	for _, handler := range l.handlers {
 		if handler.logLevel <= INFO {
