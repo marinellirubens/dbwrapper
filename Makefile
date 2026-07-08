@@ -5,7 +5,7 @@ build:
 		cp config.example.json src/config.json; \
 	fi
 	cd src && \
-	go build -o ./bin/${VERSION}/dbwrapper .
+	go build -o ../bin/${VERSION}/dbwrapper .
 
 run: build
 	echo "Running server using make run steps"
@@ -18,8 +18,8 @@ logbuild:
 	cp logrotate /etc/logrotate.d/dbwrapper
 
 build_container: build
-	./build_container.sh
+	./docker/build_container.sh
 
 create_container: build_container
-	./create_container.sh
+	./docker/create_container.sh
 
