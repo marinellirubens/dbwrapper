@@ -1,10 +1,11 @@
 VERSION=$(shell cat ./VERSION)
 
 build:
-	go build -o ./bin/${VERSION}/dbwrapper main.go
-	if [[ -f config.example.json && ! -f config.json ]]; then \
-		cp config.example.json config.json; \
+	if [[ -f config.example.json && ! -f src/config.json ]]; then \
+		cp config.example.json src/config.json; \
 	fi
+	cd src && \
+	go build -o ./bin/${VERSION}/dbwrapper .
 
 run: build
 	echo "Running server using make run steps"
